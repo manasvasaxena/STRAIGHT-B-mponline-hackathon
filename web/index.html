@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LearnQuest MP — MP Board Educational Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Noto+Sans+Devanagari:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Top Status Header -->
+    <header class="top-header">
+        <div class="header-container">
+            <div class="brand-section">
+                <div class="logo-icon">LQ</div>
+                <div class="brand-text">
+                    <h1>LearnQuest MP</h1>
+                    <span class="tagline" id="tagline-text">मध्य प्रदेश माध्यमिक शिक्षा मंडल (MPBSE) पाठ्यक्रम</span>
+                </div>
+            </div>
+
+            <div class="status-widgets">
+                <!-- User Login / Role Badge -->
+                <div class="status-card auth-card" id="header-auth-badge" style="background: #EEF2FF; border-color: #6366F1;">
+                    <span class="badge-icon">👤</span>
+                    <div class="badge-text">
+                        <strong id="auth-role-name">Aarav Sharma</strong>
+                        <small id="auth-role-type" style="color: #4338CA; font-weight: 700;">Student Portal</small>
+                    </div>
+                    <button class="btn btn-sm btn-secondary" id="open-login-btn" style="margin-left: 6px; padding: 2px 8px; font-size: 11px;">Switch User / Login</button>
+                </div>
+
+                <!-- XP Stats (Student Only) -->
+                <div class="status-card stat-card xp-card" id="header-xp-widget">
+                    <span class="stat-icon">⚡</span>
+                    <div class="stat-info">
+                        <strong id="header-xp">520 XP</strong>
+                        <small id="xp-label">Total Points</small>
+                    </div>
+                </div>
+
+                <!-- Streak Shield (Student Only) -->
+                <div class="status-card stat-card streak-card" id="header-streak-widget">
+                    <span class="stat-icon">🛡️</span>
+                    <div class="stat-info">
+                        <strong id="header-streak">7 Days</strong>
+                        <small id="streak-label">Active Streak</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Navigation Bar -->
+    <nav class="nav-bar">
+        <div class="nav-container" id="nav-container-tabs">
+            <!-- Navigation Items Rendered Dynamically -->
+        </div>
+    </nav>
+
+    <!-- Main View Container -->
+    <main class="app-main">
+        <div class="container">
+
+            <!-- TAB 1: LIVE AI QUESTION SOLVER + MY ESCALATED DOUBTS TRACKER -->
+            <section id="tab-ai-solver" class="tab-content active">
+                <div class="section-header">
+                    <div>
+                        <h2>Live AI Question Solver & Student Doubts</h2>
+                        <p class="subtitle">Ask any question for real-time step-by-step solutions or escalate to your teacher.</p>
+                    </div>
+                    <span class="pill pill-rag">🤖 MP Board AI RAG</span>
+                    <span class="pill" style="background: #EDE9FE; color: #6D28D9; border: 1px solid #C4B5FD; font-size: 11px; padding: 4px 10px; border-radius: 20px; font-weight: 700;">⚡ Powered by Google Gemini</span>
+                </div>
+
+                <div class="ai-solver-layout">
+                    <div class="card ai-input-card">
+                        <h3>Ask Any Question (कोई भी प्रश्न पूछें)</h3>
+                        <p class="small-text">Type any MP Board question below — powered by <strong>Google Gemini AI</strong> for real step-by-step bilingual solutions. Supports speech in Hindi/English.</p>
+
+                        <!-- Subject selector -->
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label>Subject Filter</label>
+                            <select id="ai-subject-select">
+                                <option value="All">All Subjects (सभी विषय)</option>
+                                <option value="Science">Science (विज्ञान)</option>
+                                <option value="Mathematics">Mathematics (गणित)</option>
+                                <option value="Social Science">Social Science (सामाजिक विज्ञान)</option>
+                                <option value="Hindi">Hindi (हिन्दी)</option>
+                                <option value="English">English (अंग्रेज़ी)</option>
+                                <option value="EVS">EVS (पर्यावरण)</option>
+                                <option value="Sanskrit">Sanskrit (संस्कृत)</option>
+                                <option value="Computer Science">Computer Science (कंप्यूटर)</option>
+                            </select>
+                        </div>
+
+                        <div class="sample-pills" id="sample-query-chips">
+                            <button class="sample-btn" data-q="2x + 5 = 15 में x का मान बताइए।">2x + 5 = 15</button>
+                            <button class="sample-btn" data-q="प्रकाश के परावर्तन के दो मुख्य नियम क्या हैं?">प्रकाश का परावर्तन</button>
+                            <button class="sample-btn" data-q="पौधों में प्रकाश संश्लेषण (Photosynthesis) प्रक्रिया समझाइए।">प्रकाश संश्लेषण</button>
+                            <button class="sample-btn" data-q="भारत का संविधान कब लागू हुआ था?">भारतीय संविधान</button>
+                            <button class="sample-btn" data-q="What are the main rules of Noun and Pronoun in English?">English Nouns</button>
+                            <button class="sample-btn" data-q="मध्य प्रदेश की प्रमुख नदियाँ कौन सी हैं?">MP Rivers</button>
+                        </div>
+
+                        <div class="input-group">
+                            <textarea id="ai-question-input" placeholder="यहाँ प्रश्न लिखें... (e.g. प्रकाश का परावर्तन क्या है? or 2x + 5 = 15 में x का मान)" rows="4"></textarea>
+                        </div>
+
+                        <div class="doubt-controls">
+                            <button class="btn btn-secondary" id="ai-voice-btn">
+                                🎤 Speech Input
+                            </button>
+                            <button class="btn btn-primary" id="ai-solve-btn">
+                                🔍 Solve with Gemini AI
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="card ai-output-card" id="ai-output-box">
+                        <div class="ai-empty-state" id="ai-empty-state">
+                            <div class="ai-icon">✨</div>
+                            <h3>Live AI Tutor Ready</h3>
+                            <p>Type a custom question or click a sample query to generate an instant step-by-step solution.</p>
+                        </div>
+
+                        <div id="ai-solution-content" class="hidden">
+                            <div class="solution-header">
+                                <span class="pill pill-rag" id="ai-source-tag">MP Board Grounded</span>
+                                <span class="status-badge-inline resolved" id="ai-mode-tag">AI RAG Solution</span>
+                            </div>
+                            <h3 id="solution-title" class="solution-q">---</h3>
+                            <div class="solution-body" id="solution-steps">
+                                <!-- Steps rendered here -->
+                            </div>
+                            
+                            <div class="solution-footer" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                                <div style="display: flex; gap: 8px;">
+                                    <button class="btn btn-secondary" id="ai-tts-btn">🔊 Listen Audio (TTS)</button>
+                                </div>
+                                <button class="btn btn-secondary escalate-ai-btn" id="ai-escalate-btn" style="color: var(--weak-red); border-color: var(--weak-red); font-weight: 700;">
+                                    ❓ Still Confused? Push to Teacher ➔
+                                </button>
+                            </div>
+                            <div id="escalation-status-msg" style="margin-top: 10px; text-align: right; font-size: 13px; font-weight: 700; color: var(--forest-green);" class="hidden">
+                                ✓ Pushed to Teacher Portal! Track reply in the section below.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STUDENT DOUBTS TRACKER SECTION -->
+                <div class="card student-doubts-tracker-card" style="margin-top: 24px;">
+                    <h3>📋 My Pushed Doubts & Live Teacher Responses (मेरी शंकाएँ एवं शिक्षक उत्तर)</h3>
+                    <p class="subtitle" style="margin-bottom: 16px;">View all questions you pushed to your teachers along with their live responses.</p>
+                    
+                    <div id="student-pushed-doubts-list">
+                        <!-- Dynamic Student Doubts & Answers -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: MP BOARD CURRICULUM MODULES (WITH TIMESTAMPS) -->
+            <section id="tab-home" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2>MP Board Curriculum Modules (माध्यमिक शिक्षा मंडल)</h2>
+                        <p class="subtitle">Select Grade (Class 6 - 10) and Subject to fetch official MP Board study materials with timestamp tracking.</p>
+                    </div>
+
+                    <!-- Grade & Subject Selectors -->
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                        <div class="form-group" style="margin: 0; min-width: 140px;">
+                            <label style="font-size: 11px; margin-bottom: 2px;">Class / Grade</label>
+                            <select id="module-grade-select" style="padding: 6px 10px;">
+                                <option value="Class 6">Class 6 (कक्षा 6)</option>
+                                <option value="Class 7">Class 7 (कक्षा 7)</option>
+                                <option value="Class 8" selected>Class 8 (कक्षा 8)</option>
+                                <option value="Class 9">Class 9 (कक्षा 9)</option>
+                                <option value="Class 10">Class 10 (कक्षा 10)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0; min-width: 150px;">
+                            <label style="font-size: 11px; margin-bottom: 2px;">Subject Filter</label>
+                            <select id="module-subject-select" style="padding: 6px 10px;">
+                                <option value="All">All Subjects (सभी विषय)</option>
+                                <option value="Science">Science (विज्ञान)</option>
+                                <option value="Mathematics">Mathematics (गणित)</option>
+                                <option value="Social Science">Social Science (सामाजिक विज्ञान)</option>
+                                <option value="Hindi">Hindi (हिन्दी)</option>
+                                <option value="English">English (अंग्रेज़ी)</option>
+                                <option value="EVS">EVS (पर्यावरण)</option>
+                                <option value="Sanskrit">Sanskrit (संस्कृत)</option>
+                                <option value="Computer Science">Computer Science (कंप्यूटर)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-3" id="levels-grid">
+                    <!-- Dynamic Level Cards -->
+                </div>
+
+                <!-- Lesson Viewer Modal -->
+                <div id="lesson-modal" class="modal hidden">
+                    <div class="modal-content">
+                        <button class="close-modal" id="close-modal">&times;</button>
+                        <div id="lesson-modal-body">
+                            <!-- Dynamic Content -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 3: STUDENT ASSIGNMENTS & PROJECTS SECTION -->
+            <section id="tab-assignments" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2>Class Assignments & Projects (गृहकार्य एवं प्रोजेक्ट)</h2>
+                        <p class="subtitle">Complete quizzes, answer open questions, or work on hands-on science/math projects assigned by your teachers.</p>
+                    </div>
+
+                    <!-- Grade & Subject Selectors for Assignments -->
+                    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                        <div class="form-group" style="margin: 0; min-width: 140px;">
+                            <label style="font-size: 11px; margin-bottom: 2px;">Class / Grade</label>
+                            <select id="assign-grade-select" style="padding: 6px 10px;">
+                                <option value="Class 6">Class 6 (कक्षा 6)</option>
+                                <option value="Class 7">Class 7 (कक्षा 7)</option>
+                                <option value="Class 8" selected>Class 8 (कक्षा 8)</option>
+                                <option value="Class 9">Class 9 (कक्षा 9)</option>
+                                <option value="Class 10">Class 10 (कक्षा 10)</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="margin: 0; min-width: 150px;">
+                            <label style="font-size: 11px; margin-bottom: 2px;">Subject Filter</label>
+                            <select id="assign-subject-select" style="padding: 6px 10px;">
+                                <option value="All">All Subjects (सभी विषय)</option>
+                                <option value="Science">Science (विज्ञान)</option>
+                                <option value="Mathematics">Mathematics (गणित)</option>
+                                <option value="Social Science">Social Science (सामाजिक विज्ञान)</option>
+                                <option value="Hindi">Hindi (हिन्दी)</option>
+                                <option value="English">English (अंग्रेज़ी)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="student-assignments-list">
+                    <!-- Dynamic Assignments Rendered Here -->
+                </div>
+            </section>
+
+            <!-- TAB 4: RANDOM GENERATED PUZZLES / BRAIN TEASERS -->
+            <section id="tab-puzzle" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2>🎲 Random Generated Puzzles & Brain Teasers</h2>
+                        <p class="subtitle">Solve randomly generated mini-puzzles across science, logic, and math to earn XP and protect your streak!</p>
+                    </div>
+                    <button class="btn btn-primary btn-sm" id="generate-new-puzzle-btn">🔀 Generate Random Puzzle</button>
+                </div>
+
+                <div class="card puzzle-card">
+                    <div class="puzzle-header">
+                        <span class="pill pill-streak">🛡️ Daily Streak Active</span>
+                        <span class="puzzle-date" id="puzzle-subject-tag">Random Challenge — Science & Math</span>
+                    </div>
+                    <h3 class="puzzle-question" id="puzzle-q-title">यदि एक पौधा 24 घंटे में 100ml जल अवशोषित करता है, तो 5 पौधों को 3 दिन में कितना जल चाहिए?</h3>
+                    <div class="puzzle-options" id="puzzle-options">
+                        <!-- Dynamic Puzzle Options -->
+                    </div>
+                    <div id="puzzle-feedback" class="puzzle-feedback hidden"></div>
+                </div>
+            </section>
+
+            <!-- TAB 5: TEACHER PORTAL & STUDIO -->
+            <section id="tab-teacher" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2>Teacher & Mentor Management Dashboard</h2>
+                        <p class="subtitle">Monitor student progress, review doubt escalations, publish assignments/projects, and use Teacher AI Assistant to auto-generate modules.</p>
+                    </div>
+                    <span class="pill pill-teacher">👨‍🏫 Verified MP Teacher Portal</span>
+                </div>
+
+                <!-- Teacher Creation Studio Navigation Tabs -->
+                <div class="sub-tabs" style="margin-bottom: 20px; flex-wrap: wrap;">
+                    <button class="sub-tab-btn active" id="btn-t-inbox">📥 Student Doubts Inbox</button>
+                    <button class="sub-tab-btn" id="btn-t-analytics">📊 Student Performance Analytics</button>
+                    <button class="sub-tab-btn" id="btn-t-grading">📝 Grade Student Assignments</button>
+                    <button class="sub-tab-btn" id="btn-t-teacher-ai">🤖 Teacher AI Helper (Auto Notes)</button>
+                    <button class="sub-tab-btn" id="btn-t-create-module">🛠️ Create Study Module</button>
+                    <button class="sub-tab-btn" id="btn-t-create-assignment">📂 Publish Assignment / Quiz</button>
+                    <button class="sub-tab-btn" id="btn-t-manage-assignments">🗑️ Manage & Delete Assignments</button>
+                    <button class="sub-tab-btn" id="btn-t-manage-modules">🗑️ Manage & Delete Modules</button>
+                </div>
+
+                <!-- SECTION 1: INBOX -->
+                <div id="teacher-sec-inbox">
+                    <div class="teacher-stats-row grid grid-4">
+                        <div class="card stat-widget">
+                            <strong id="teacher-enrolled-students-count">28</strong>
+                            <span>Total Enrolled Students</span>
+                            <small style="color: var(--text-secondary); font-size: 11px;">Active across Class 6-10</small>
+                        </div>
+                        <div class="card stat-widget alert-widget">
+                            <strong id="escalated-count-stat">1</strong>
+                            <span>Pending Escalated Doubts</span>
+                            <small style="color: var(--weak-red); font-size: 11px;">Requires Teacher Action</small>
+                        </div>
+                        <div class="card stat-widget">
+                            <strong id="resolved-doubts-stat">2</strong>
+                            <span>Resolved Inquiries</span>
+                            <small style="color: var(--forest-green); font-size: 11px;">Teacher Responses Sent</small>
+                        </div>
+                        <div class="card stat-widget">
+                            <strong id="class-avg-mastery-stat">84%</strong>
+                            <span>Class Average Mastery</span>
+                            <small style="color: var(--forest-green); font-size: 11px;">Based on Quizzes & Tasks</small>
+                        </div>
+                    </div>
+
+                    <div class="card teacher-inbox-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
+                            <div>
+                                <h3 style="margin-bottom: 4px;">📥 Escalated Student Doubts Inbox</h3>
+                                <p class="subtitle">Review student questions escalated from the AI Solver and provide verified teacher guidance.</p>
+                            </div>
+                            <div class="inbox-filter-pills" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <button class="filter-pill active" id="inbox-filter-all-btn">All Inquiries (<span id="inbox-count-all">0</span>)</button>
+                                <button class="filter-pill" id="inbox-filter-pending-btn">⏳ Pending Review (<span id="inbox-count-pending">0</span>)</button>
+                                <button class="filter-pill" id="inbox-filter-resolved-btn">✓ Resolved (<span id="inbox-count-resolved">0</span>)</button>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; gap: 12px; margin-bottom: 16px; flex-wrap: wrap;">
+                            <input type="text" id="inbox-search-input" placeholder="🔍 Search doubts by student name or topic..." style="flex: 1; min-width: 220px; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px;">
+                            <select id="inbox-grade-filter" style="padding: 8px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px; min-width: 140px;">
+                                <option value="All">All Grades (कक्षा)</option>
+                                <option value="Class 6">Class 6</option>
+                                <option value="Class 7">Class 7</option>
+                                <option value="Class 8">Class 8</option>
+                                <option value="Class 9">Class 9</option>
+                                <option value="Class 10">Class 10</option>
+                            </select>
+                        </div>
+
+                        <div id="teacher-doubt-items">
+                            <!-- Dynamic Escalated Doubts -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 2: DETAILED STUDENT PERFORMANCE ANALYTICS -->
+                <div id="teacher-sec-analytics" class="hidden">
+                    <!-- KPI Row -->
+                    <div class="teacher-stats-row grid grid-4" style="margin-bottom: 20px;">
+                        <div class="card stat-widget">
+                            <strong id="analytics-class-avg-score">78.4%</strong>
+                            <span>Class Average Quiz Score</span>
+                            <small style="color: var(--forest-green); font-size: 11px;">▲ +4.2% this week</small>
+                        </div>
+                        <div class="card stat-widget">
+                            <strong id="analytics-total-quizzes">142</strong>
+                            <span>Total Quizzes Attempted</span>
+                            <small style="color: var(--text-secondary); font-size: 11px;">Across 28 active students</small>
+                        </div>
+                        <div class="card stat-widget">
+                            <strong id="analytics-assignments-graded-rate">88%</strong>
+                            <span>Assignment Submission Rate</span>
+                            <small style="color: var(--forest-green); font-size: 11px;">High participation</small>
+                        </div>
+                        <div class="card stat-widget alert-widget">
+                            <strong id="analytics-at-risk-count">3</strong>
+                            <span>Students Needing Support</span>
+                            <small style="color: var(--weak-red); font-size: 11px;">Score &lt; 60% in Math/Science</small>
+                        </div>
+                    </div>
+
+                    <!-- Filter Bar for Analytics -->
+                    <div class="card" style="margin-bottom: 20px; padding: 14px 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">
+                                🎯 Filter Analytics by Class & Subject:
+                            </div>
+                            <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                                <select id="analytics-grade-filter" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px;">
+                                    <option value="All">All Grades (कक्षा 6 - 10)</option>
+                                    <option value="Class 6">Class 6 (कक्षा 6)</option>
+                                    <option value="Class 7">Class 7 (कक्षा 7)</option>
+                                    <option value="Class 8" selected>Class 8 (कक्षा 8)</option>
+                                    <option value="Class 9">Class 9 (कक्षा 9)</option>
+                                    <option value="Class 10">Class 10 (कक्षा 10)</option>
+                                </select>
+                                <select id="analytics-subject-filter" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px;">
+                                    <option value="All">All Subjects (सभी विषय)</option>
+                                    <option value="Science">Science (विज्ञान)</option>
+                                    <option value="Mathematics">Mathematics (गणित)</option>
+                                    <option value="Social Science">Social Science (सामाजिक विज्ञान)</option>
+                                    <option value="Hindi">Hindi (हिन्दी)</option>
+                                    <option value="English">English (अंग्रेज़ी)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2A: STUDENT ROSTER PERFORMANCE TABLE -->
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+                            <div>
+                                <h3 style="margin-bottom: 2px;">📋 Enrolled Students Performance Roster</h3>
+                                <p class="subtitle">Individual performance metrics, quiz averages, assignment scores, and mastery diagnosis.</p>
+                            </div>
+                            <input type="text" id="roster-search-input" placeholder="🔍 Search student name..." style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px;">
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table class="roster-table" style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                                <thead>
+                                    <tr style="background: #F8FAFC; border-bottom: 2px solid var(--border-color); text-align: left;">
+                                        <th style="padding: 10px 14px;">Student Name</th>
+                                        <th style="padding: 10px 14px;">Class</th>
+                                        <th style="padding: 10px 14px;">School / District</th>
+                                        <th style="padding: 10px 14px;">Quizzes Taken</th>
+                                        <th style="padding: 10px 14px;">Quiz Avg %</th>
+                                        <th style="padding: 10px 14px;">Assignments</th>
+                                        <th style="padding: 10px 14px;">Mastery Status</th>
+                                        <th style="padding: 10px 14px; text-align: center;">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="teacher-analytics-roster-container">
+                                    <!-- Dynamic Student Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 2B: SUBJECT-WISE MASTERY & LEARNING GAPS -->
+                    <div class="grid grid-2" style="margin-bottom: 20px;">
+                        <div class="card">
+                            <h3 style="margin-bottom: 4px;">📈 Subject Mastery Distribution</h3>
+                            <p class="subtitle" style="margin-bottom: 16px;">Curriculum mastery progress across MP Board core subjects.</p>
+                            <div id="analytics-subject-bars" style="display: flex; flex-direction: column; gap: 14px;">
+                                <!-- Dynamic Subject Progress Bars -->
+                            </div>
+                        </div>
+
+                        <div class="card" style="border-left: 4px solid var(--primary-saffron);">
+                            <h3 style="margin-bottom: 4px;">⚠️ Concept Learning Gaps & Remediation</h3>
+                            <p class="subtitle" style="margin-bottom: 14px;">Topics with student error rate &gt; 35% requiring classroom reinforcement.</p>
+                            <div id="analytics-weak-topics-list" style="display: flex; flex-direction: column; gap: 10px;">
+                                <!-- Dynamic Learning Gap Items -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 2C: QUESTION RESPONSES & OPTION BREAKDOWN -->
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
+                            <div>
+                                <h3 style="margin-bottom: 2px;">📊 Question Responses & Option Breakdown %</h3>
+                                <p class="subtitle">Diagnostic breakdown of student answer choices, correctness rates, and distractor selections.</p>
+                            </div>
+                            <span class="pill pill-teacher" style="font-size: 11px;">⚡ Live Updated from Student Quizzes</span>
+                        </div>
+                        <div id="teacher-analytics-breakdown-container">
+                            <!-- Dynamic Analytics Breakdown -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: TEACHER GRADING SYSTEM FOR ASSIGNMENTS -->
+                <div id="teacher-sec-grading" class="hidden">
+                    <!-- Grading KPI Stat Row -->
+                    <div class="teacher-stats-row grid grid-4" style="margin-bottom: 20px;">
+                        <div class="card stat-widget">
+                            <strong id="grading-stat-total">3</strong>
+                            <span>Total Submissions Received</span>
+                            <small style="color: var(--text-secondary); font-size: 11px;">Homework &amp; Projects</small>
+                        </div>
+                        <div class="card stat-widget alert-widget">
+                            <strong id="grading-stat-pending">2</strong>
+                            <span>Awaiting Teacher Grading</span>
+                            <small style="color: var(--weak-red); font-size: 11px;">Needs Evaluation</small>
+                        </div>
+                        <div class="card stat-widget">
+                            <strong id="grading-stat-graded">1</strong>
+                            <span>Evaluated &amp; Graded</span>
+                            <small style="color: var(--forest-green); font-size: 11px;">Feedback sent to students</small>
+                        </div>
+                        <div class="card stat-widget">
+                            <strong id="grading-stat-avg-score">8.5 / 10</strong>
+                            <span>Average Score Awarded</span>
+                            <small style="color: var(--forest-green); font-size: 11px;">Grade A Level</small>
+                        </div>
+                    </div>
+
+                    <!-- Grading Filter & Control Card -->
+                    <div class="card" style="margin-bottom: 20px; padding: 14px 20px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                            <div style="font-weight: 700; font-size: 14px; color: var(--text-primary);">
+                                📝 Filter Submissions to Evaluate:
+                            </div>
+                            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center;">
+                                <select id="grading-assignment-filter" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px; max-width: 250px;">
+                                    <option value="All">All Assignments &amp; Projects</option>
+                                    <!-- Dynamic options populated from assignments -->
+                                </select>
+                                <select id="grading-status-filter" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px;">
+                                    <option value="All">All Statuses</option>
+                                    <option value="PENDING" selected>⏳ Awaiting Grading (Pending)</option>
+                                    <option value="GRADED">✓ Already Graded</option>
+                                </select>
+                                <select id="grading-class-filter" style="padding: 6px 12px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-size: 13px;">
+                                    <option value="All">All Classes</option>
+                                    <option value="Class 6">Class 6</option>
+                                    <option value="Class 7">Class 7</option>
+                                    <option value="Class 8" selected>Class 8</option>
+                                    <option value="Class 9">Class 9</option>
+                                    <option value="Class 10">Class 10</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submissions List for Grading -->
+                    <div class="card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 8px;">
+                            <div>
+                                <h3 style="margin-bottom: 4px;">📋 Student Submissions &amp; Evaluation Desk</h3>
+                                <p class="subtitle">Review student answers and project reports, assign marks and letter grades, and give personal feedback.</p>
+                            </div>
+                            <button type="button" class="btn btn-secondary btn-sm" id="grading-refresh-btn">🔄 Refresh Submissions</button>
+                        </div>
+                        <div id="teacher-grading-submissions-list">
+                            <!-- Dynamic Submission Evaluation Cards -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: TEACHER AI ASSISTANT & AUTO-MODULE GENERATOR -->
+                <div id="teacher-sec-teacher-ai" class="hidden">
+                    <div class="card">
+                        <h3>🤖 Teacher AI Helper & Auto-Module Generator</h3>
+                        <p class="subtitle" style="margin-bottom: 16px;">Enter any topic to let AI draft proper MP Board lesson notes that you can publish directly as a student module!</p>
+
+                        <div class="grid grid-2">
+                            <div class="form-group">
+                                <label>Target Class / Grade</label>
+                                <select id="tai-grade">
+                                    <option value="Class 6">Class 6 (कक्षा 6)</option>
+                                    <option value="Class 7">Class 7 (कक्षा 7)</option>
+                                    <option value="Class 8" selected>Class 8 (कक्षा 8)</option>
+                                    <option value="Class 9">Class 9 (कक्षा 9)</option>
+                                    <option value="Class 10">Class 10 (कक्षा 10)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Subject</label>
+                                <select id="tai-subject">
+                                    <option value="Science">Science (विज्ञान)</option>
+                                    <option value="Mathematics">Mathematics (गणित)</option>
+                                    <option value="Social Science">Social Science (सामाजिक विज्ञान)</option>
+                                    <option value="Hindi">Hindi (हिन्दी)</option>
+                                    <option value="English">English (अंग्रेज़ी)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>Topic / Chapter Prompt</label>
+                            <input type="text" id="tai-prompt-input" placeholder="e.g. प्रकाश का अपवर्तन (Refraction of Light) or द्विघात समीकरण (Quadratic Equations)">
+                        </div>
+
+                        <button type="button" class="btn btn-primary" id="tai-generate-btn" style="margin-bottom: 20px;">✨ Generate with Gemini AI — Create Full MP Board Notes</button>
+
+                        <div id="tai-generated-preview" class="card hidden" style="background: #FFF3E6; border: 1px solid var(--primary-saffron); padding: 16px;">
+                            <h4 id="tai-preview-title" style="margin-bottom: 8px; color: var(--primary-saffron-dark);">Generated Preview</h4>
+                            <div id="tai-preview-body" style="font-size: 14px; margin-bottom: 16px; white-space: pre-wrap;">
+                                <!-- Preview Text -->
+                            </div>
+                            <button type="button" class="btn btn-success btn-block" id="tai-publish-btn">🚀 One-Click Publish as Student Module</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: CREATE STUDY MODULE / NOTES MANUALLY -->
+                <div id="teacher-sec-create-module" class="hidden">
+                    <div class="card">
+                        <h3>🛠️ Create New MP Board Study Module / Notes</h3>
+                        <p class="subtitle" style="margin-bottom: 16px;">Publish custom study notes & chapters directly to student dashboards.</p>
+
+                        <form id="create-module-form">
+                            <div class="grid grid-2">
+                                <div class="form-group">
+                                    <label>Target Class / Grade</label>
+                                    <select id="tm-grade">
+                                        <option value="Class 6">Class 6 (कक्षा 6)</option>
+                                        <option value="Class 7">Class 7 (कक्षा 7)</option>
+                                        <option value="Class 8" selected>Class 8 (कक्षा 8)</option>
+                                        <option value="Class 9">Class 9 (कक्षा 9)</option>
+                                        <option value="Class 10">Class 10 (कक्षा 10)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Subject</label>
+                                    <select id="tm-subject">
+                                        <option value="Science">Science (विज्ञान)</option>
+                                        <option value="Mathematics">Mathematics (गणित)</option>
+                                        <option value="Social Science">Social Science (सामाजिक विज्ञान)</option>
+                                        <option value="Hindi">Hindi (हिन्दी)</option>
+                                        <option value="English">English (अंग्रेज़ी)</option>
+                                        <option value="EVS">EVS (पर्यावरण)</option>
+                                        <option value="Sanskrit">Sanskrit (संस्कृत)</option>
+                                        <option value="Computer Science">Computer Science (कंप्यूटर)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Module Title (Hindi)</label>
+                                <input type="text" id="tm-title-hi" required placeholder="e.g. कक्षा 8 विज्ञान: धातु एवं अधातु (Teacher Special)">
+                            </div>
+                            <div class="form-group">
+                                <label>Module Title (English)</label>
+                                <input type="text" id="tm-title-en" required placeholder="e.g. Class 8 Science: Metals and Non-Metals">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Chapter 1 Title</label>
+                                <input type="text" id="tm-ch1-title" required placeholder="e.g. 1. धातुओं के भौतिक गुण">
+                            </div>
+                            <div class="form-group">
+                                <label>Chapter 1 Content / Notes</label>
+                                <textarea id="tm-ch1-content" rows="4" required placeholder="Type chapter explanations, formulas, or key MP Board concepts here..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block" id="publish-module-btn">🚀 Publish Module to Students</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: CREATE & PUBLISH ASSIGNMENT STUDIO -->
+                <div id="teacher-sec-create-assignment" class="hidden">
+                    <div class="card">
+                        <h3>📂 Create & Publish Student Assignment / Quiz / Project</h3>
+                        <p class="subtitle" style="margin-bottom: 16px;">Publish homework, quizzes, open-ended questions, or hands-on projects to selected classes.</p>
+
+                        <form id="create-assignment-form">
+                            <div class="grid grid-2">
+                                <div class="form-group">
+                                    <label>Target Class / Grade</label>
+                                    <select id="ta-grade">
+                                        <option value="Class 6">Class 6 (कक्षा 6)</option>
+                                        <option value="Class 7">Class 7 (कक्षा 7)</option>
+                                        <option value="Class 8" selected>Class 8 (कक्षा 8)</option>
+                                        <option value="Class 9">Class 9 (कक्षा 9)</option>
+                                        <option value="Class 10">Class 10 (कक्षा 10)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Subject</label>
+                                    <select id="ta-subject">
+                                        <option value="Science">Science (विज्ञान)</option>
+                                        <option value="Mathematics">Mathematics (गणित)</option>
+                                        <option value="Social Science">Social Science (सामाजिक विज्ञान)</option>
+                                        <option value="Hindi">Hindi (हिन्दी)</option>
+                                        <option value="English">English (अंग्रेज़ी)</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-2">
+                                <div class="form-group">
+                                    <label>Assignment Format / Category</label>
+                                    <select id="ta-type">
+                                        <option value="Quiz Assignment">Homework Practice Quiz (क्विज़ गृहकार्य)</option>
+                                        <option value="Open Question">Open Written Question (लिखित प्रश्न)</option>
+                                        <option value="Hands-on Project">Hands-on Science/Math Project (प्रोजेक्ट कार्य)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>Due Date</label>
+                                    <input type="date" id="ta-duedate" required value="2026-10-05">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Assignment Title</label>
+                                <input type="text" id="ta-title" required placeholder="e.g. परावर्तन के नियमों का मॉडल एवं प्रयोग रिपोर्ट (Project)">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Instructions & Description</label>
+                                <textarea id="ta-instructions" rows="4" required placeholder="Detail instructions, steps to perform project, or questions to solve..."></textarea>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-block" id="publish-assignment-btn">🚀 Publish Assignment to Students</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: MANAGE & DELETE ASSIGNMENTS -->
+                <div id="teacher-sec-manage-assignments" class="hidden">
+                    <div class="card">
+                        <h3>🗑️ Manage & Remove Published Assignments / Projects</h3>
+                        <p class="subtitle" style="margin-bottom: 16px;">Delete active assignments or projects so student task lists stay up to date.</p>
+
+                        <div id="teacher-manage-assignments-list">
+                            <!-- Dynamic Active Assignments for Deletion -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECTION 6: MANAGE & DELETE MODULES -->
+                <div id="teacher-sec-manage-modules" class="hidden">
+                    <div class="card">
+                        <h3>🗑️ Manage & Remove Active MP Board Modules</h3>
+                        <p class="subtitle" style="margin-bottom: 16px;">Delete unwanted or outdated modules so student dashboards stay clean and unstacked.</p>
+
+                        <div id="teacher-manage-modules-list">
+                            <!-- Dynamic Active Modules for Deletion -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 6: SCHOLARSHIPS & CAREERS -->
+            <section id="tab-opportunities" class="tab-content">
+                <div class="section-header">
+                    <div>
+                        <h2>Verified Scholarships & Career Pathways</h2>
+                        <p class="subtitle">Curated database of MP Government welfare schemes, national scholarships, and vocational careers.</p>
+                    </div>
+                    <div class="sub-tabs">
+                        <button class="sub-tab-btn active" id="btn-show-scholarships">Verified Scholarships</button>
+                        <button class="sub-tab-btn" id="btn-show-careers">Career Pathways</button>
+                    </div>
+                </div>
+
+                <!-- Scholarships Section -->
+                <div id="section-scholarships">
+                    <div class="grid grid-2" id="scholarships-grid">
+                        <!-- Scholarships -->
+                    </div>
+                </div>
+
+                <!-- Careers Section -->
+                <div id="section-careers" class="hidden">
+                    <div class="grid grid-2" id="careers-grid">
+                        <!-- Careers -->
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- AUTHENTICATION & LOGIN / REGISTER MODAL WITH PASSWORD -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 450px;">
+            <button class="close-modal" id="close-login-modal">&times;</button>
+            <h2 style="text-align: center; margin-bottom: 4px;">LearnQuest Portal Login</h2>
+            <p style="text-align: center; font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">Separate portals for Students and Verified Teachers</p>
+
+            <div class="sub-tabs" style="justify-content: center; margin-bottom: 20px;">
+                <button class="sub-tab-btn active" id="login-tab-student">Student Account</button>
+                <button class="sub-tab-btn" id="login-tab-teacher">Teacher Portal</button>
+            </div>
+
+            <!-- STUDENT LOGIN / REGISTER FORM WITH PASSWORD -->
+            <form id="student-auth-form">
+                <div class="form-group">
+                    <label>Student Username</label>
+                    <input type="text" id="student-name-input" required placeholder="e.g. Ramesh Kumar or aarav8" value="aarav">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="student-pass-input" required placeholder="Enter or create password" value="student123">
+                </div>
+                <div class="form-group">
+                    <label>Grade / Class</label>
+                    <select id="student-grade-select">
+                        <option value="Class 6">Class 6</option>
+                        <option value="Class 7">Class 7</option>
+                        <option value="Class 8" selected>Class 8</option>
+                        <option value="Class 9">Class 9</option>
+                        <option value="Class 10">Class 10</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>School Name / District (MP)</label>
+                    <input type="text" id="student-school-input" placeholder="e.g. Govt Excellence School, Bhopal" value="Govt Middle School, Sehore">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 10px;">Login / Register Student Account</button>
+            </form>
+
+            <!-- TEACHER VERIFIED LOGIN FORM -->
+            <form id="teacher-auth-form" class="hidden">
+                <div class="form-group">
+                    <label>MP Education Teacher ID</label>
+                    <input type="text" id="teacher-id-input" required placeholder="e.g. MP-TEACHER-101" value="MP-TEACHER-101">
+                    <small style="color: var(--text-secondary); display: block; margin-top: 2px;">Verified IDs: MP-TEACHER-101, MP-TEACHER-102, MP-TEACHER-103</small>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="teacher-pass-input" required placeholder="Enter password" value="teacher123">
+                    <small style="color: var(--text-secondary); display: block; margin-top: 2px;">Demo Password: teacher123</small>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" style="margin-top: 10px;">Authenticate & Open Teacher Portal</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- STUDENT ASSIGNMENT SUBMISSION MODAL -->
+    <div id="submit-assignment-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 580px;">
+            <button class="close-modal" id="close-submit-modal">&times;</button>
+            <h3 style="margin-bottom: 4px;" id="modal-submit-title">Submit Assignment / Project</h3>
+            <p class="subtitle" id="modal-submit-subtitle" style="margin-bottom: 16px;">Provide your solution, written steps, or project summary for teacher review.</p>
+
+            <form id="student-submit-form">
+                <input type="hidden" id="modal-submit-assign-id">
+                <div style="background: #F8FAFC; border: 1px solid var(--border-color); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 16px;">
+                    <div style="font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px;">ASSIGNMENT INSTRUCTIONS:</div>
+                    <div id="modal-submit-instructions" style="font-size: 13px; color: var(--text-primary); line-height: 1.4;"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Your Written Response / Solution / Project Notes (लिखित उत्तर या रिपोर्ट)</label>
+                    <textarea id="modal-submit-response" rows="6" required placeholder="Type your detailed answer, step-by-step calculations, or project observations here..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Project Work / Model Reference Note (Optional)</label>
+                    <input type="text" id="modal-submit-attachment-note" placeholder="e.g. Model chart photo verified by village school headmaster or Science Diary Pg 12">
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+                    <button type="button" class="btn btn-secondary" id="modal-submit-cancel-btn">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="modal-submit-confirm-btn">🚀 Submit for Teacher Grading (+50 XP)</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- TEACHER STUDENT DIAGNOSTIC MODAL -->
+    <div id="student-diagnostic-modal" class="modal hidden">
+        <div class="modal-content" style="max-width: 650px;">
+            <button class="close-modal" id="close-diagnostic-modal">&times;</button>
+            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary-saffron-light); color: var(--primary-saffron-dark); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 800;">
+                    🎓
+                </div>
+                <div>
+                    <h3 style="margin-bottom: 2px;" id="diag-student-name">Student Diagnostic</h3>
+                    <p class="subtitle" id="diag-student-meta">Class 8 • Govt Middle School</p>
+                </div>
+            </div>
+
+            <div class="grid grid-3" style="gap: 10px; margin-bottom: 20px;">
+                <div class="card" style="text-align: center; padding: 12px; background: #F8FAFC;">
+                    <strong style="font-size: 20px; color: var(--primary-saffron-dark); display: block;" id="diag-overall-score">82%</strong>
+                    <span style="font-size: 11px; color: var(--text-secondary);">Overall Mastery</span>
+                </div>
+                <div class="card" style="text-align: center; padding: 12px; background: #F8FAFC;">
+                    <strong style="font-size: 20px; color: var(--forest-green); display: block;" id="diag-quizzes-count">12</strong>
+                    <span style="font-size: 11px; color: var(--text-secondary);">Quizzes Solved</span>
+                </div>
+                <div class="card" style="text-align: center; padding: 12px; background: #F8FAFC;">
+                    <strong style="font-size: 20px; color: var(--streak-blue); display: block;" id="diag-assignments-count">4</strong>
+                    <span style="font-size: 11px; color: var(--text-secondary);">Tasks Graded</span>
+                </div>
+            </div>
+
+            <h4 style="margin-bottom: 10px; font-size: 14px;">Subject-by-Subject Performance</h4>
+            <div id="diag-subject-bars" style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+                <!-- Dynamic Subject Bars -->
+            </div>
+
+            <div style="background: var(--forest-green-light); border: 1px solid var(--forest-green); border-radius: var(--radius-sm); padding: 12px; margin-bottom: 16px;">
+                <h5 style="color: var(--forest-green); font-size: 13px; margin-bottom: 4px;">💡 Teacher Remediation Recommendation:</h5>
+                <p id="diag-recommendation" style="font-size: 12px; color: var(--text-primary); line-height: 1.4;">Student exhibits strong aptitude in Science and Social Science. Recommend practice quiz in linear equations.</p>
+            </div>
+
+            <div style="text-align: right;">
+                <button type="button" class="btn btn-primary btn-sm" id="close-diag-btn">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div class="container footer-content">
+            <p><strong>LearnQuest MP Web Edition</strong> — MP Board Educational Platform</p>
+            <p class="tagline">"Empowering learning everywhere through AI and accessibility."</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
