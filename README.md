@@ -361,3 +361,40 @@ LearnQuest MP aims to make quality learning available even when connectivity, ba
 ## License
 
 Add your preferred license here.
+
+
+directory structure
+
+app/src/main/java/com/example/learnquestmp/
+│
+├── MainActivity.kt
+│
+├── data/
+│   ├── model/
+│   │   ├── StudentProgress.kt
+│   │   ├── LearningTopic.kt
+│   │   ├── LearningZone.kt
+│   │   └── DailyChallenge.kt
+│   │
+│   └── repository/
+│       └── MockLearningRepository.kt
+│
+├── navigation/
+│   └── AppNavigation.kt
+│
+└── ui/
+    ├── components/
+    │   ├── ProgressCard.kt
+    │   ├── ContinueLearningCard.kt
+    │   ├── LearningZoneCard.kt
+    │   ├── DailyChallengeCard.kt
+    │   └── QuickActionCard.kt
+    │
+    ├── screens/
+    │   ├── HomeScreen.kt
+    │   └── PlaceholderScreen.kt
+    │
+    └── theme/
+        ├── Color.kt
+        ├── Theme.kt
+        └── Type.kt
