@@ -1,0 +1,94 @@
+================================================================================
+LEARNQUEST MP — KOTLIN JETPACK COMPOSE GUI IMPLEMENTATION & ARCHITECTURE EXPLANATION
+================================================================================
+
+1. OVERVIEW & PHILOSOPHY
+--------------------------------------------------------------------------------
+LearnQuest MP is an offline-first, low-bandwidth learning platform tailored for 
+students in rural and tribal Madhya Pradesh (MP). Built with modern Kotlin and 
+Jetpack Compose, the GUI is specifically engineered around intermittent/zero 
+network connectivity, multi-student device sharing, vernacular language support 
+(Hindi + English), and curriculum-grounded learning.
+
+"The internet went away. Learning didn't."
+
+
+2. PROJECT STRUCTURE & KOTLIN SOURCE CODE FILES
+--------------------------------------------------------------------------------
+All source files are located under:
+app/src/main/java/com/learnquest/mp/
+
+• Models.kt (model/Models.kt)
+  - StudentProfile: Multi-profile account state for shared Android devices.
+  - LearningLevel: Chunked level-by-level download units (size, level#, download state).
+  - MasteryState: Rule-based mastery levels (Weak <60%, Developing 60-84%, Mastered ≥85%).
+  - QuizQuestion: Adaptive practice question data structure.
+  - DoubtQuery: Vernacular query model supporting cached offline FAQ & teacher escalation.
+  - Scholarship & CareerPathway: Curated verified database structures.
+  - SyncQueueItem & SyncStatus: Delta synchronization queue items.
+
+• Theme & Design System (ui/theme/)
+  - Color.kt: Culturally resonant SaffronPrimary (#FF9933), ForestGreen (#138808), 
+    StreakShieldBlue (#2563EB), and low-contrast background palette.
+  - Theme.kt: Jetpack Compose MaterialTheme wrapper.
+
+• Components (ui/components/)
+  - TopStatusHeader.kt: Always-visible top status bar featuring:
+    1) Airplane / Offline Mode toggle for live hackathon demonstration.
+    2) Active student name and grade.
+    3) Gamification stats: XP Counter, Streak Shield protection indicator, and Sync Queue length.
+
+• Screens (ui/screens/)
+  - HomeScreen.kt: Level-wise lesson download management and progress tracking.
+  - ProfileScreen.kt: Shared device multi-profile manager with vernacular profile creation.
+  - QuizScreen.kt: Adaptive learning practice with real-time rule-based mastery calculation.
+  - DoubtSolverScreen.kt: Dual-mode doubt solver (Offline FAQ match vs Online RAG / Teacher Escalation).
+  - OpportunitiesScreen.kt: Verified MP scholarship directory and rule-based career pathways.
+  - SyncQueueScreen.kt: Delta sync queue inspector showing local Room/SQLite actions waiting for reconnection.
+
+• MainActivity.kt
+  - Application entry point with Compose NavigationBar, top status header, and reactive state management.
+
+
+3. KEY INNOVATIONS IMPLEMENTED IN THE GUI
+--------------------------------------------------------------------------------
+[1] Offline-First & Resumable Level Downloads:
+    The HomeScreen displays level-by-level content bundles with exact MB sizes 
+    (e.g., 2.4 MB). When offline, downloaded levels remain fully functional.
+
+[2] Streak Shield & Gamification:
+    The TopStatusHeader visualizes active learning streaks protected by Streak Shield 
+    even when connectivity drops, preventing unfair loss of student motivation.
+
+[3] Multi-Profile Shared Device Support:
+    The ProfileScreen enables multiple siblings or classmates sharing a single phone 
+    to switch profiles, preserving separate XP, mastery scores, and streak data.
+
+[4] Offline AI Fallback & Teacher Escalation:
+    The DoubtSolverScreen handles offline queries using local cached FAQs/glossary. 
+    If unresolved, queries are queued for escalation to a teacher or mentor.
+
+[5] Verified Scholarship Discovery:
+    The OpportunitiesScreen presents structured scholarship data filtered from a 
+    curated database rather than hallucinated LLM output.
+
+[6] Rule-Based Adaptive Learning Engine:
+    The QuizScreen calculates scores and assigns students into Weak (<60%), 
+    Developing (60-84%), or Mastered (≥85%) states, triggering targeted revision.
+
+[7] Delta Synchronization Queue:
+    The SyncQueueScreen shows all pending local changes (XP earned, lessons completed, 
+    escalated doubts) with additive merge logic once network connectivity is restored.
+
+
+4. HACKATHON DEMO STEPS USING THIS GUI
+--------------------------------------------------------------------------------
+1. Toggle "Airplane Mode" ON in the top header.
+2. Navigate to "Profiles" to show multi-student profile switching on a shared phone.
+3. Open "Home" to start a downloaded offline lesson (e.g., Light & Reflection).
+4. Go to "Adaptive Quiz" and take the practice quiz to see real-time mastery calculation.
+5. Visit "Doubt Solver" and ask a question to see cached offline resolution.
+6. Click "Escalate to Teacher" to add the doubt to the offline sync queue.
+7. Open "Sync Queue" to view queued local actions.
+8. Toggle "Airplane Mode" OFF and hit "Sync Now" to demonstrate Delta Synchronization!
+================================================================================
