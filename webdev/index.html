@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LearnQuest MP — Web Platform</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Top Status Header (Shared with Jetpack Compose GUI) -->
+  <header id="topHeader" class="top-status-header offline">
+    <div class="header-row-1">
+      <div>
+        <h3 id="profileHeaderName">छात्र / Student: Aarav Sharma</h3>
+        <small id="modeText" style="color: #FFC107; font-weight: 600;">OFFLINE MODE (ऑफलाइन)</small>
+      </div>
+
+      <div class="mode-toggle">
+        <small>Airplane Mode</small>
+        <label class="switch">
+          <input type="checkbox" id="airplaneToggle" checked onchange="toggleAirplaneMode(this.checked)">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="badges-row">
+      <div class="badge" id="xpBadge">⚡ 450 XP</div>
+      <div class="badge streak" id="streakBadge">🛡️ Streak Shield (5 Days)</div>
+      <div class="badge sync" id="syncBadge">🔄 Sync: 2 Queue</div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="main-container">
+
+    <!-- SCREEN 1: HOME (Levels & Download Units) -->
+    <section id="homeScreen" class="screen active">
+      <h2>पाठ्यक्रम स्तर / Learning Levels</h2>
+      <div id="homeOfflineBanner" class="banner warning">
+        ℹ️ Offline Mode Active: You can study downloaded modules. New downloads require network.
+      </div>
+      <div id="levelsList"></div>
+    </section>
+
+    <!-- SCREEN 2: ADAPTIVE QUIZ -->
+    <section id="quizScreen" class="screen">
+      <h2>अनुकूली क्विज़ / Adaptive Quiz</h2>
+      <div id="quizContent"></div>
+    </section>
+
+    <!-- SCREEN 3: DOUBT SOLVER -->
+    <section id="doubtsScreen" class="screen">
+      <h2>शंका समाधान / AI Doubt Solver</h2>
+      <div id="doubtModeBanner" class="banner warning">
+        ⚡ OFFLINE MODE: Answers are served from cached curriculum FAQs & offline knowledge base.
+      </div>
+
+      <div class="input-row">
+        <input type="text" id="doubtInput" placeholder="प्रश्न पूछें... (Ask a doubt in Hindi/English)" />
+        <button class="btn" onclick="submitDoubt()">पूछें</button>
+      </div>
+
+      <h3>हालिया प्रश्न / Recent Queries</h3>
+      <div id="doubtsList" style="margin-top: 10px;"></div>
+    </section>
+
+    <!-- SCREEN 4: SCHOLARSHIPS & CAREERS -->
+    <section id="opportunitiesScreen" class="screen">
+      <h2>अवसर एवं छात्रवृत्ति / Opportunities</h2>
+      <div style="display: flex; gap: 10px; margin-bottom: 14px;">
+        <button class="btn" id="btnTabScholarships" onclick="switchOppTab('scholarships')">छात्रवृत्ति (Scholarships)</button>
+        <button class="btn" id="btnTabCareers" style="background:#6B7280;" onclick="switchOppTab('careers')">करियर मार्ग (Careers)</button>
+      </div>
+      <div id="oppList"></div>
+    </section>
+
+    <!-- SCREEN 5: SHARED DEVICE PROFILES -->
+    <section id="profilesScreen" class="screen">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2>छात्र प्रोफ़ाइल / Shared Device Profiles</h2>
+        <button class="btn" onclick="showAddProfileModal()">+ नया जोड़ें</button>
+      </div>
+
+      <div class="banner info">
+        💡 Multiple students can share this phone/browser. Each student maintains separate XP, streaks, and learning history.
+      </div>
+
+      <div id="profilesList"></div>
+    </section>
+
+    <!-- SCREEN 6: DELTA SYNC QUEUE -->
+    <section id="syncScreen" class="screen">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <h2>डेल्टा सिंक कतार / Sync Queue</h2>
+        <button class="btn" id="btnSyncNow" onclick="triggerSync()">Sync Now</button>
+      </div>
+
+      <div id="syncBanner" class="banner warning">
+        ⚠️ Connectivity is OFF. All local actions (XP, Quiz score, Lessons) are safe in local sync queue.
+      </div>
+
+      <div id="syncQueueList"></div>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="nav-bar">
+    <button class="nav-item active" onclick="navTo('homeScreen', this)">
+      <span class="icon">🏠</span>
+      <span>Home</span>
+    </button>
+    <button class="nav-item" onclick="navTo('quizScreen', this)">
+      <span class="icon">✅</span>
+      <span>Adaptive Quiz</span>
+    </button>
+    <button class="nav-item" onclick="navTo('doubtsScreen', this)">
+      <span class="icon">💬</span>
+      <span>Doubt Solver</span>
+    </button>
+    <button class="nav-item" onclick="navTo('opportunitiesScreen', this)">
+      <span class="icon">⭐</span>
+      <span>Scholarships</span>
+    </button>
+    <button class="nav-item" onclick="navTo('profilesScreen', this)">
+      <span class="icon">👤</span>
+      <span>Profiles</span>
+    </button>
+    <button class="nav-item" onclick="navTo('syncScreen', this)">
+      <span class="icon">🔄</span>
+      <span>Sync Queue</span>
+    </button>
+  </nav>
+
+  <script src="app.js"></script>
+</body>
+</html>

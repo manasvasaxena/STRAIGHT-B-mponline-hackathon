@@ -1,0 +1,237 @@
+/* LearnQuest MP Web - Matches Jetpack Compose Android UI Palette */
+:root {
+  --saffron-primary: #FF9933;
+  --deep-saffron: #E67E22;
+  --forest-green: #138808;
+  --background-light: #F9F9FB;
+  --surface-card: #FFFFFF;
+  --text-dark: #1F2937;
+  --text-muted: #6B7280;
+  --warning-orange: #D97706;
+  --streak-blue: #2563EB;
+  --weak-red: #DC2626;
+  --mastered-green: #16A34A;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+  background-color: var(--background-light);
+  color: var(--text-dark);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+/* Header & Status Banner */
+.top-status-header {
+  background-color: var(--saffron-primary);
+  color: white;
+  padding: 16px;
+  border-radius: 0 0 16px 16px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  transition: background-color 0.3s ease;
+}
+
+.top-status-header.offline {
+  background-color: #2D3748;
+}
+
+.header-row-1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.mode-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background-color: #ccc;
+  transition: .3s;
+  border-radius: 24px;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: .3s;
+  border-radius: 50%;
+}
+
+input:checked + .slider {
+  background-color: #E53E3E;
+}
+
+input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+.badges-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.badge {
+  padding: 4px 10px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: bold;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.badge.streak { background-color: var(--streak-blue); }
+.badge.sync { background-color: var(--warning-orange); }
+.badge.sync.synced { background-color: var(--forest-green); }
+
+/* Bottom / Top Navigation */
+.nav-bar {
+  display: flex;
+  justify-content: space-around;
+  background: var(--surface-card);
+  border-top: 1px solid #E5E7EB;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  padding: 10px 0;
+  z-index: 100;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-size: 11px;
+  color: var(--text-muted);
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+.nav-item.active {
+  color: var(--saffron-primary);
+  font-weight: bold;
+}
+
+.nav-item .icon {
+  font-size: 18px;
+  margin-bottom: 2px;
+}
+
+/* Main Container & Screens */
+.main-container {
+  padding: 16px;
+  margin-bottom: 70px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+/* Cards & UI Elements */
+.card {
+  background: var(--surface-card);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  border: 1px solid #F3F4F6;
+}
+
+.btn {
+  background-color: var(--saffron-primary);
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.btn-secondary {
+  background-color: var(--forest-green);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.banner {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+
+.banner.warning { background: #FEF3C7; color: #92400E; }
+.banner.info { background: #E0F2FE; color: #0369A1; }
+.banner.success { background: #DCFCE7; color: #166534; }
+
+/* Quiz & Options */
+.option-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid #E5E7EB;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+
+.option-item input {
+  margin-right: 10px;
+}
+
+/* Input Row */
+.input-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.input-row input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #D1D5DB;
+  border-radius: 8px;
+}

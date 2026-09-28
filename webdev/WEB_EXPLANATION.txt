@@ -1,0 +1,51 @@
+================================================================================
+LEARNQUEST MP — WEB PLATFORM IMPLEMENTATION & ARCHITECTURE (webdev/)
+================================================================================
+
+1. OVERVIEW & PARITY WITH KOTLIN ANDROID APP
+--------------------------------------------------------------------------------
+The `webdev/` folder contains a standalone web implementation of LearnQuest MP.
+It achieves 100% feature and UI parity with the Jetpack Compose Android application,
+allowing students and teachers to access LearnQuest MP on desktop browsers, 
+tablets, and low-cost ChromeOS / web terminals in rural digital classrooms.
+
+Key Parity Highlights:
+• Saffron Primary (#FF9933) & Vernacular Color Theme
+• Interactive Airplane / Offline Mode Switcher
+• Multi-Profile Shared Device Switcher
+• Resumable Chunked Level Downloads
+• Rule-Based Adaptive Quiz Engine (Weak, Developing, Mastered)
+• Dual-Mode AI Doubt Solver (Offline FAQ Cache vs Online RAG)
+• Verified Scholarship Directory & Career Pathways
+• Delta Synchronization Queue with Additive Merge Logic
+
+
+2. FILE STRUCTURE IN `webdev/`
+--------------------------------------------------------------------------------
+webdev/
+├── index.html   - Responsive layout containing all 6 UI screens & navigation
+├── style.css    - Styling matching Jetpack Compose Material 3 theme & color system
+└── app.js       - Interactive single-page application (SPA) state engine
+
+
+3. HOW TO RUN THE WEB APP
+--------------------------------------------------------------------------------
+Option A: Direct Browser Execution
+• Simply double-click `webdev/index.html` or drag it into any web browser 
+  (Chrome, Edge, Firefox, Safari).
+
+Option B: Local Web Server (Node / Python / VS Code Live Server)
+• Using Python:
+  python -m http.server --directory webdev 8080
+• Open in browser: http://localhost:8080
+
+
+4. TESTING THE INNOVATIONS IN THE WEB APP
+--------------------------------------------------------------------------------
+1. Toggle "Airplane Mode" ON/OFF at the top right to simulate real-time network loss.
+2. In "Home", download Level 2 (3.1 MB) when online, and test launching offline lessons.
+3. Take the "Adaptive Quiz" to calculate score percentage and rule-based mastery state.
+4. Ask a question in "Doubt Solver" and escalate unresolved queries to teachers.
+5. Go to "Profiles" to switch active students or add a new sibling/classmate profile.
+6. Open "Sync Queue" and turn off Airplane Mode to execute "Sync Now" delta push.
+================================================================================
