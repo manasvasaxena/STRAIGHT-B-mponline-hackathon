@@ -2,159 +2,127 @@ package com.learnquest.mp.ui.screens
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.learnquest.mp.model.LearningLevel
-import com.learnquest.mp.model.MasteryState
-import com.learnquest.mp.ui.theme.ForestGreen
-import com.learnquest.mp.ui.theme.MasteredGreen
-import com.learnquest.mp.ui.theme.SaffronPrimary
-import com.learnquest.mp.ui.theme.WeakRed
+import com.learnquest.mp.data.model.HomeData
+import com.learnquest.mp.ui.components.*
+import java.util.Calendar
 
-/**
- * HomeScreen showcasing offline-first level downloads, low-bandwidth content packs, and level progression.
- */
+/** Top bar: app name, greeting, notification + profile icons. */
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun HomeTopBar(studentName: String, onNotifications: () -> Unit, onProfile: () -> Unit) {
+    TopAppBar(
+        title = {
+            Column {
+                Text("LearnQuest MP", style = MaterialTheme.typography.titleLarge)
+                Text("${greeting()}, $studentName!", style = MaterialTheme.typography.bodyMedium)
+            }
+        },
+        actions = {
+            IconButton(onClick = onNotifications) {
+                Icon(Icons.Filled.Notifications, contentDescription = "Notifications")
+            }
+            IconButton(onClick = onProfile) {
+                Icon(Icons.Filled.Person, contentDescription = "Open profile")
+            }
+        },
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background)
+    )
+}
+
+/** Main home dashboard. Everything is one LazyColumn so it scrolls smoothly. */
 @Composable
 fun HomeScreen(
-    levels: List<LearningLevel>,
-    onDownloadLevel: (String) -> Unit,
-    onStartLesson: (String) -> Unit,
-    isOffline: Boolean
+    data: HomeData,
+    isOffline: Boolean,
+    onMessage: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(12.dp)
-    ) {
-        Text(
-            text = "पाठ्यक्रम स्तर / Learning Levels",
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 8.dp)
-        )
-
-        if (isOffline) {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFFEF3C7)),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 12.dp)
-            ) {
+    // Box + widthIn keeps the layout readable on tablets (content is centered, max 640dp wide).
+    Box(modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
+        LazyColumn(
+            modifier = Modifier.widthIn(max = 640.dp).fillMaxSize(),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            item(key = "tagline") {
                 Text(
-                    text = "ℹ️ Offline Mode Active: You can study downloaded modules. New downloads require network.",
-                    modifier = Modifier.padding(10.dp),
-                    fontSize = 12.sp,
-                    color = Color(0xFF92400E)
+                    "Learn Anywhere. Learn in Your Language. Level Up Your Future.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-        }
+            item(key = "offline") { OfflineStatusCard(isOffline) }
+            item(key = "progress") { ProgressCard(data.progress) }
 
-        LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(levels) { level ->
-                LearningLevelCard(
-                    level = level,
-                    onDownload = { onDownloadLevel(level.id) },
-                    onStart = { onStartLesson(level.id) },
-                    isOffline = isOffline
-                )
+            item(key = "continue") {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SectionTitle("Continue Learning")
+                    ContinueLearningCard(
+                        topic = data.continueTopic,
+                        onContinue = { onMessage("Opening ${data.continueTopic.topic} (coming soon)") }
+                    )
+                }
+            }
+
+            item(key = "explore") {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SectionTitle("Explore Learning World")
+                    LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        items(data.zones, key = { it.id }) { zone ->
+                            LearningZoneCard(zone, onClick = { onMessage("${zone.name}: coming soon") })
+                        }
+                    }
+                }
+            }
+
+            item(key = "challenge") {
+                DailyChallengeCard(data.dailyChallenge, onStart = { onMessage("Daily challenge: coming soon") })
+            }
+
+            item(key = "quick") {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    SectionTitle("Quick Actions")
+                    // 2x2 grid built from Rows. (A LazyVerticalGrid inside a LazyColumn would crash.)
+                    data.quickActions.chunked(2).forEach { rowActions ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min),
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            rowActions.forEach { action ->
+                                QuickActionCard(
+                                    action = action,
+                                    onClick = { onMessage("${action.label}: Coming soon") },
+                                    modifier = Modifier.weight(1f).fillMaxHeight()
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-fun LearningLevelCard(
-    level: LearningLevel,
-    onDownload: () -> Unit,
-    onStart: () -> Unit,
-    isOffline: Boolean
-) {
-    Card(
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(10.dp)
-    ) {
-        Column(modifier = Modifier.padding(14.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column {
-                    Text(
-                        text = "Level ${level.levelNumber}: ${level.titleHindi}",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 16.sp
-                    )
-                    Text(
-                        text = "${level.titleEnglish} (${level.subject})",
-                        color = Color.Gray,
-                        fontSize = 13.sp
-                    )
-                }
+private fun SectionTitle(text: String) {
+    Text(text, style = MaterialTheme.typography.titleLarge)
+}
 
-                // Mastery Status Badge
-                val masteryColor = when (level.masteryState) {
-                    MasteryState.MASTERED -> MasteredGreen
-                    MasteryState.DEVELOPING -> SaffronPrimary
-                    MasteryState.WEAK -> WeakRed
-                }
-
-                Surface(
-                    color = masteryColor.copy(alpha = 0.15f),
-                    shape = RoundedCornerShape(6.dp)
-                ) {
-                    Text(
-                        text = level.masteryState.label,
-                        color = masteryColor,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 3.dp)
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            // Download & Progress Info
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Lessons: ${level.downloadedLessons}/${level.totalLessons} | Size: ${level.downloadSizeMb} MB",
-                    fontSize = 12.sp,
-                    color = Color.DarkGray
-                )
-
-                if (level.isDownloaded) {
-                    Button(
-                        onClick = onStart,
-                        colors = ButtonDefaults.buttonColors(containerColor = ForestGreen),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("अध्ययन करें (Start)")
-                    }
-                } else {
-                    Button(
-                        onClick = onDownload,
-                        enabled = !isOffline,
-                        colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Text("डाउनलोड (${level.downloadSizeMb} MB)")
-                    }
-                }
-            }
-        }
+private fun greeting(): String {
+    val hour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+    return when {
+        hour < 12 -> "Good morning"
+        hour < 17 -> "Good afternoon"
+        else -> "Good evening"
     }
 }
