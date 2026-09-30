@@ -31,7 +31,7 @@ fun OfflineStatusCard(isOffline: Boolean, modifier: Modifier = Modifier) {
             )
             Text(
                 if (isOffline) "Your downloaded lessons are available offline."
-                else "Everything is up to date.",
+                else "Internet connection verified. Pending changes can sync.",
                 style = MaterialTheme.typography.bodyMedium
             )
         }

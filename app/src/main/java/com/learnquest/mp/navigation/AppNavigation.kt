@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -40,8 +41,11 @@ private val tabs = listOf(Screen.Home, Screen.Explore, Screen.Learn, Screen.Prog
 
 @Composable
 fun AppNavigation(
-    repository: StatefullLearningRepository = remember { StatefullLearningRepository() }
+    repository: StatefullLearningRepository
 ) {
+    DisposableEffect(repository) {
+        onDispose { repository.close() }
+    }
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -91,8 +95,7 @@ fun AppNavigation(
             Column(modifier = Modifier.padding(top = topInsetPadding.calculateTopPadding())) {
                 val activeProfile = profiles.find { it.id == activeProfileId } ?: profiles.firstOrNull()
                 TopStatusHeader(
-                    isAirplaneMode = isOffline,
-                    onToggleAirplaneMode = { repository.toggleOfflineMode() },
+                    isOffline = isOffline,
                     activeProfileName = activeProfile?.name ?: "Student",
                     xp = activeProfile?.totalXp ?: 0,
                     streakDays = activeProfile?.streakDays ?: 0,
@@ -137,10 +140,18 @@ fun AppNavigation(
                             navController.navigate("doubt_solver")
                         } else if (msg.contains("Sync")) {
                             navController.navigate("sync_queue")
+                        } else if (msg.contains("Downloads")) {
+                            navController.navigate("downloads")
                         } else {
                             showMessage(msg)
                         }
                     }
+                )
+            }
+            composable("downloads") {
+                DownloadsScreen(
+                    appLanguage = appLanguage,
+                    onBack = { navController.popBackStack() }
                 )
             }
             composable("doubt_solver") {
@@ -170,13 +181,14 @@ fun AppNavigation(
             composable(Screen.Explore.route) {
                 ExploreScreen(
                     appLanguage = appLanguage,
+                    isOffline = isOffline,
                     onCategoryClick = { category ->
                         showMessage("Opening $category...")
                     }
                 )
             }
             composable(Screen.Learn.route) {
-                QuizScreen(
+                LearnScreen(
                     questions = quizQuestions,
                     onQuizComplete = { score, mastery ->
                         repository.addSyncItem(
@@ -184,7 +196,8 @@ fun AppNavigation(
                             payload = "Quiz Score: $score%, Mastery: ${mastery.name}"
                         )
                         showMessage("Quiz completed! Mastery: ${mastery.label}")
-                    }
+                    },
+                    onMessage = showMessage
                 )
             }
             composable(Screen.Progress.route) {
@@ -199,7 +212,6 @@ fun AppNavigation(
                     activeProfileId = activeProfileId,
                     selectedAppLanguage = appLanguage,
                     isOffline = isOffline,
-                    onToggleOffline = { repository.toggleOfflineMode() },
                     onSelectProfile = { repository.selectProfile(it) },
                     onSelectLanguage = { repository.setAppLanguage(it) },
                     onCreateProfile = { name, grade, lang ->

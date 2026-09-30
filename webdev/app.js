@@ -2,7 +2,7 @@
 
 // Global App State
 let state = {
-  isAirplaneMode: true,
+  isOffline: !navigator.onLine,
   activeProfileId: 'p1',
   profiles: [
     { id: 'p1', name: 'Aarav Sharma', grade: 'Class 8', lang: 'हिन्दी', xp: 450, streak: 5, isProtected: true },
@@ -46,23 +46,58 @@ function navTo(screenId, btnElement) {
   if (btnElement) btnElement.classList.add('active');
 }
 
-// Toggle Offline Mode
-function toggleAirplaneMode(isOffline) {
-  state.isAirplaneMode = isOffline;
+// A browser's online flag only describes network configuration. Probe a real
+// endpoint as well so captive portals and disconnected Wi-Fi are not reported
+// as usable internet.
+const CONNECTIVITY_PROBE_URL = 'https://www.gstatic.com/generate_204';
+let connectivityProbe;
+
+async function checkInternetConnection() {
+  if (!navigator.onLine) return false;
+  if (connectivityProbe) return connectivityProbe;
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 5000);
+  connectivityProbe = fetch(`${CONNECTIVITY_PROBE_URL}?t=${Date.now()}`, {
+    method: 'GET',
+    cache: 'no-store',
+    mode: 'no-cors',
+    signal: controller.signal
+  })
+    .then(() => true)
+    .catch(() => false)
+    .finally(() => {
+      clearTimeout(timeout);
+      connectivityProbe = null;
+    });
+
+  return connectivityProbe;
+}
+
+function setConnectivityState(isOnline) {
+  state.isOffline = !isOnline;
   const header = document.getElementById('topHeader');
   const modeText = document.getElementById('modeText');
   
-  if (isOffline) {
+  if (!isOnline) {
     header.classList.add('offline');
     modeText.innerText = 'OFFLINE MODE (ऑफलाइन)';
     modeText.style.color = '#FFC107';
   } else {
     header.classList.remove('offline');
-    modeText.innerText = 'ONLINE MODE (ऑनलाइन)';
+    modeText.innerText = 'ONLINE — INTERNET VERIFIED (ऑनलाइन)';
     modeText.style.color = '#E2E8F0';
   }
   renderAll();
 }
+
+async function refreshConnectivity() {
+  setConnectivityState(await checkInternetConnection());
+}
+
+window.addEventListener('online', refreshConnectivity);
+window.addEventListener('offline', () => setConnectivityState(false));
+setInterval(refreshConnectivity, 30000);
 
 // Render Functions
 function renderAll() {
@@ -98,7 +133,7 @@ function renderHeader() {
 function renderHome() {
   const container = document.getElementById('levelsList');
   const banner = document.getElementById('homeOfflineBanner');
-  banner.style.display = state.isAirplaneMode ? 'block' : 'none';
+  banner.style.display = state.isOffline ? 'block' : 'none';
 
   container.innerHTML = state.levels.map(lvl => `
     <div class="card">
@@ -117,7 +152,7 @@ function renderHome() {
         <small>Lessons: ${lvl.downloaded}/${lvl.total} | ${lvl.size} MB</small>
         ${lvl.isDownloaded 
           ? `<button class="btn btn-secondary" onclick="alert('Starting downloaded lesson...')">अध्ययन करें (Start)</button>`
-          : `<button class="btn" ${state.isAirplaneMode ? 'disabled' : ''} onclick="downloadLevel('${lvl.id}')">डाउनलोड (${lvl.size} MB)</button>`}
+          : `<button class="btn" ${state.isOffline ? 'disabled' : ''} onclick="downloadLevel('${lvl.id}')">डाउनलोड (${lvl.size} MB)</button>`}
       </div>
     </div>
   `).join('');
@@ -196,10 +231,10 @@ function resetQuiz() {
 }
 
 function renderDoubts() {
-  document.getElementById('doubtModeBanner').innerText = state.isAirplaneMode 
+  document.getElementById('doubtModeBanner').innerText = state.isOffline
     ? '⚡ OFFLINE MODE: Answers are served from cached curriculum FAQs & offline knowledge base.'
     : '🌐 ONLINE MODE: Connected to Curriculum RAG Engine with LLM synthesis.';
-  document.getElementById('doubtModeBanner').className = `banner ${state.isAirplaneMode ? 'warning' : 'info'}`;
+  document.getElementById('doubtModeBanner').className = `banner ${state.isOffline ? 'warning' : 'info'}`;
 
   const container = document.getElementById('doubtsList');
   container.innerHTML = state.doubts.map(d => `
@@ -227,8 +262,8 @@ function submitDoubt() {
   const newD = {
     id: 'd' + Date.now(),
     question: input.value,
-    resolvedOffline: state.isAirplaneMode,
-    answer: state.isAirplaneMode ? 'कैश्ड उत्तर: प्रकाश सीधी रेखा में गमन करता है।' : 'RAG AI Result: Detailed online synthesized response.',
+    resolvedOffline: state.isOffline,
+    answer: state.isOffline ? 'कैश्ड उत्तर: प्रकाश सीधी रेखा में गमन करता है।' : 'RAG AI Result: Detailed online synthesized response.',
     escalated: false
   };
   state.doubts.unshift(newD);
@@ -313,12 +348,12 @@ function renderSyncQueue() {
   const banner = document.getElementById('syncBanner');
   const btnSync = document.getElementById('btnSyncNow');
 
-  banner.className = `banner ${state.isAirplaneMode ? 'warning' : 'success'}`;
-  banner.innerText = state.isAirplaneMode 
+  banner.className = `banner ${state.isOffline ? 'warning' : 'success'}`;
+  banner.innerText = state.isOffline
     ? '⚠️ Connectivity is OFF. All local actions (XP, Quiz score, Lessons) are safe in local sync queue.'
     : '✅ Network Available. Ready to push delta updates to cloud backend with additive merge rules.';
 
-  btnSync.disabled = state.isAirplaneMode || state.syncQueue.length === 0;
+  btnSync.disabled = state.isOffline || state.syncQueue.length === 0;
 
   if (state.syncQueue.length === 0) {
     container.innerHTML = '<p style="text-align:center; color:gray; padding:20px;">No pending delta updates! All data synchronized.</p>';
@@ -348,4 +383,5 @@ function triggerSync() {
 // Initial Load
 document.addEventListener('DOMContentLoaded', () => {
   renderAll();
+  refreshConnectivity();
 });

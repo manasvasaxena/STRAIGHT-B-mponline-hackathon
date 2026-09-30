@@ -1,21 +1,38 @@
 package com.learnquest.mp.data.repository
 
+import android.content.Context
 import com.learnquest.mp.data.model.*
+import com.learnquest.mp.data.network.NetworkConnectivityObserver
 import com.learnquest.mp.model.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 
 /**
  * State-aware Repository providing real in-memory reactive state and offline sync queue logic.
  */
-class StatefullLearningRepository : LearningRepository {
+class StatefullLearningRepository(context: Context) : LearningRepository, AutoCloseable {
 
-    private val _isOffline = MutableStateFlow(true)
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private val connectivityObserver = NetworkConnectivityObserver(context)
+
+    private val _isOffline = MutableStateFlow(!connectivityObserver.isOnline.value)
     val isOfflineFlow: StateFlow<Boolean> = _isOffline.asStateFlow()
 
     private val _appLanguage = MutableStateFlow(Language.HINDI)
     val appLanguageFlow: StateFlow<Language> = _appLanguage.asStateFlow()
+
+    init {
+        connectivityObserver.isOnline
+            .onEach { isOnline -> _isOffline.value = !isOnline }
+            .launchIn(repositoryScope)
+    }
 
     fun setAppLanguage(language: Language) {
         _appLanguage.value = language
@@ -136,10 +153,6 @@ class StatefullLearningRepository : LearningRepository {
     )
     val quizQuestionsFlow: StateFlow<List<QuizQuestion>> = _quizQuestions.asStateFlow()
 
-    fun toggleOfflineMode() {
-        _isOffline.value = !_isOffline.value
-    }
-
     fun selectProfile(id: String) {
         _activeProfileId.value = id
     }
@@ -207,5 +220,10 @@ class StatefullLearningRepository : LearningRepository {
                 QuickAction("career", "🎓", "Career")
             )
         )
+    }
+
+    override fun close() {
+        connectivityObserver.close()
+        repositoryScope.cancel()
     }
 }

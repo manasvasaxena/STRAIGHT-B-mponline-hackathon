@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -15,6 +16,15 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.ContentValues
+import android.content.Context
+import android.os.Build
+import android.os.Environment
+import android.provider.MediaStore
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import java.io.File
+import java.io.FileOutputStream
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -53,13 +63,57 @@ data class ResourceBranch(
 @Composable
 fun ExploreScreen(
     appLanguage: Language = Language.HINDI,
+    isOffline: Boolean = false,
     onCategoryClick: (String) -> Unit = {}
 ) {
     var selectedBoard by remember { mutableStateOf(EducationBoard.MP_BOARD) }
     var searchQuery by remember { mutableStateOf("") }
-    var selectedGrade by remember { mutableStateOf("Class 10") }
+    var selectedGrade by remember { mutableStateOf("Class 6") }
+    var selectedSubjectNotes by remember { mutableStateOf<String?>(null) }
+    var showNoteDialog by remember { mutableStateOf(false) }
+    var noteContent by remember { mutableStateOf("") }
+    val context = LocalContext.current
 
     val isHindi = appLanguage == Language.HINDI
+
+    val class6MathsMdUrl = "https://raw.githubusercontent.com/manasvasaxena/STRAIGHT-B-mponline-hackathon/main/PKGS/Class_6_Maths_Lesson_1_Notes.md"
+    val localClass6Notes = """
+        # Class 6 Maths - Lesson 1
+        ## Knowing Our Numbers
+
+        ### 1. Numbers and Place Value
+        A number is made up of digits. The place value of a digit depends on its position.
+
+        Example: 5,43,216
+        - 5 Lakhs (5,00,000)
+        - 4 Ten Thousands (40,000)
+        - 3 Thousands (3,000)
+        - 2 Hundreds (200)
+        - 1 Tens (10)
+        - 6 Ones (6)
+
+        ### 2. Face Value
+        The face value of a digit is the digit itself.
+        Example: In 72,456, the face value of 2 is 2.
+
+        ### 3. Indian Place Value System
+        Ones -> Tens -> Hundreds -> Thousands -> Ten Thousands -> Lakhs -> Ten Lakhs -> Crores
+
+        Example: 12,34,567
+        Twelve lakh thirty-four thousand five hundred sixty-seven.
+
+        ### 4. Comparing Numbers
+        45,678 > 9,876
+        56,432 > 54,321
+
+        ### 5. Ascending and Descending Order
+        Ascending: 12, 25, 37, 48, 63
+        Descending: 63, 48, 37, 25, 12
+
+        ### 6. Rounding Off Numbers
+        47 -> 50, 43 -> 40
+        346 -> 300, 378 -> 400
+    """.trimIndent()
 
     val grades = listOf("Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12")
 
@@ -224,7 +278,15 @@ fun ExploreScreen(
                         SubjectCard(
                             subject = subject,
                             isHindi = isHindi,
-                            onClick = { onCategoryClick(if (isHindi) subject.titleHindi else subject.titleEnglish) }
+                            onClick = {
+                                val title = if (isHindi) subject.titleHindi else subject.titleEnglish
+                                if (selectedGrade == "Class 6" && (title == "Mathematics" || title == "गणित")) {
+                                    selectedSubjectNotes = "Class_6_Maths_Lesson_1_Notes.md"
+                                    noteContent = localClass6Notes
+                                    showNoteDialog = true
+                                }
+                                onCategoryClick(title)
+                            }
                         )
                     }
                 }
@@ -266,6 +328,123 @@ fun ExploreScreen(
                 }
             }
         }
+    }
+
+    if (showNoteDialog) {
+        AlertDialog(
+            onDismissRequest = { showNoteDialog = false },
+            title = {
+                Text(
+                    text = if (isHindi) "उपलब्ध पाठ सामग्री" else "Available Study Material",
+                    fontWeight = FontWeight.Bold
+                )
+            },
+            text = {
+                Column(
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = if (isHindi) "नोट्स फ़ाइल का नाम:" else "Notes File Name:",
+                        fontSize = 12.sp,
+                        color = Color.Gray,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Card(
+                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Description,
+                                contentDescription = null,
+                                tint = SaffronPrimary,
+                                modifier = Modifier.size(28.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = selectedSubjectNotes ?: "Class_6_Maths_Lesson_1_Notes.md",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp
+                            )
+                        }
+                    }
+                    if (isOffline) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = if (isHindi) "⚠️ डाउनलोड केवल इंटरनेट उपलब्ध होने पर काम करेगा।" else "⚠️ Downloading requires active internet connection.",
+                            fontSize = 12.sp,
+                            color = Color(0xFFDC2626)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (isOffline) {
+                            Toast.makeText(
+                                context,
+                                if (isHindi) "इंटरनेट कनेक्शन नहीं है! डाउनलोड करने के लिए ऑनलाइन आएं।" else "No internet connection! Go online to download.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        } else {
+                            downloadMarkdownNote(
+                                context = context,
+                                filename = "Class_6_Maths_Lesson_1_Notes.md",
+                                content = noteContent
+                            )
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isOffline) Color.Gray else SaffronPrimary
+                    )
+                ) {
+                    Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(if (isHindi) "डाउनलोड .md" else "Download .md")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showNoteDialog = false }) {
+                    Text(if (isHindi) "बंद करें" else "Close")
+                }
+            }
+        )
+    }
+}
+
+fun downloadMarkdownNote(context: Context, filename: String, content: String) {
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val resolver = context.contentResolver
+            val contentValues = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
+                put(MediaStore.MediaColumns.MIME_TYPE, "text/markdown")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
+            }
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
+            if (uri != null) {
+                resolver.openOutputStream(uri)?.use { os ->
+                    os.write(content.toByteArray())
+                }
+                Toast.makeText(context, "Downloaded $filename to Downloads folder!", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            val file = File(downloadsDir, filename)
+            FileOutputStream(file).use { os ->
+                os.write(content.toByteArray())
+            }
+            Toast.makeText(context, "Saved $filename to Downloads!", Toast.LENGTH_LONG).show()
+        }
+    } catch (e: Exception) {
+        Toast.makeText(context, "Failed to download note: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
     }
 }
 

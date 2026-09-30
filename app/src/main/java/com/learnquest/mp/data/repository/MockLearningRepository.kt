@@ -1,22 +1,23 @@
 package com.learnquest.mp.data.repository
 
+import android.content.Context
+import com.learnquest.mp.data.network.NetworkConnectivityObserver
 import com.learnquest.mp.data.model.*
 
 /**
- * The UI only talks to this interface. Today it is backed by mock data;
- * later you can add a Room/network version without touching any screen.
+ * Legacy sample repository. Its content is still sample data, but connectivity
+ * is sourced from the real Android network observer rather than a fake flag.
  */
 interface LearningRepository {
     fun getHomeData(): HomeData
     fun isOffline(): Boolean
 }
 
-class MockLearningRepository : LearningRepository {
+class MockLearningRepository(context: Context) : LearningRepository, AutoCloseable {
 
-    // Mock connectivity flag. Replace with real network detection later.
-    private val isOffline = true
+    private val connectivityObserver = NetworkConnectivityObserver(context)
 
-    override fun isOffline(): Boolean = isOffline
+    override fun isOffline(): Boolean = !connectivityObserver.isOnline.value
 
     override fun getHomeData() = HomeData(
         progress = StudentProgress(
@@ -53,4 +54,8 @@ class MockLearningRepository : LearningRepository {
             QuickAction("career", "🎓", "Career"),
         )
     )
+
+    override fun close() {
+        connectivityObserver.close()
+    }
 }

@@ -4,9 +4,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AirplanemodeActive
-import androidx.compose.material.icons.filled.AirplanemodeInactive
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.filled.Wifi
+import androidx.compose.material.icons.filled.WifiOff
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,12 +20,11 @@ import com.learnquest.mp.ui.theme.ForestGreen
 import com.learnquest.mp.ui.theme.SaffronPrimary
 
 /**
- * Minimalist Top Header containing clean quick action icons (Offline/Airplane toggle & Sync Status).
+ * Minimalist top header containing live connectivity and sync status.
  */
 @Composable
 fun TopStatusHeader(
-    isAirplaneMode: Boolean,
-    onToggleAirplaneMode: () -> Unit,
+    isOffline: Boolean,
     activeProfileName: String,
     xp: Int,
     streakDays: Int,
@@ -76,7 +75,7 @@ fun TopStatusHeader(
                 }
             }
 
-            // Right: Subtle Icon Controls (Airplane Mode & Sync Queue Indicator)
+            // Right: live network status and sync queue indicator
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -106,15 +105,15 @@ fun TopStatusHeader(
                     }
                 }
 
-                // Airplane Mode Minimal Toggle Button
-                IconButton(
-                    onClick = onToggleAirplaneMode,
-                    modifier = Modifier.size(36.dp)
+                // This is read-only: connectivity comes from Android's validated network state.
+                Box(
+                    modifier = Modifier.size(36.dp),
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (isAirplaneMode) Icons.Default.AirplanemodeActive else Icons.Default.AirplanemodeInactive,
-                        contentDescription = "Toggle Airplane Mode",
-                        tint = if (isAirplaneMode) Color(0xFFEF4444) else ForestGreen,
+                        imageVector = if (isOffline) Icons.Default.WifiOff else Icons.Default.Wifi,
+                        contentDescription = if (isOffline) "Internet unavailable" else "Internet connected",
+                        tint = if (isOffline) Color(0xFFEF4444) else ForestGreen,
                         modifier = Modifier.size(22.dp)
                     )
                 }

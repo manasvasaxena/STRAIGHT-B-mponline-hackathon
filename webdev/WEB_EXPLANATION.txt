@@ -11,7 +11,7 @@ tablets, and low-cost ChromeOS / web terminals in rural digital classrooms.
 
 Key Parity Highlights:
 • Saffron Primary (#FF9933) & Vernacular Color Theme
-• Interactive Airplane / Offline Mode Switcher
+• Live internet reachability status with offline fallback
 • Multi-Profile Shared Device Switcher
 • Resumable Chunked Level Downloads
 • Rule-Based Adaptive Quiz Engine (Weak, Developing, Mastered)
@@ -42,10 +42,10 @@ Option B: Local Web Server (Node / Python / VS Code Live Server)
 
 4. TESTING THE INNOVATIONS IN THE WEB APP
 --------------------------------------------------------------------------------
-1. Toggle "Airplane Mode" ON/OFF at the top right to simulate real-time network loss.
+1. The header probes a real internet endpoint and updates automatically when the browser goes online or offline.
 2. In "Home", download Level 2 (3.1 MB) when online, and test launching offline lessons.
 3. Take the "Adaptive Quiz" to calculate score percentage and rule-based mastery state.
 4. Ask a question in "Doubt Solver" and escalate unresolved queries to teachers.
 5. Go to "Profiles" to switch active students or add a new sibling/classmate profile.
-6. Open "Sync Queue" and turn off Airplane Mode to execute "Sync Now" delta push.
+6. Open "Sync Queue" when online to execute "Sync Now" delta push.
 ================================================================================

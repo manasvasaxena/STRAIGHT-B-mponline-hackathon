@@ -28,7 +28,6 @@ fun ProfileScreen(
     activeProfileId: String = "1",
     selectedAppLanguage: Language = Language.HINDI,
     isOffline: Boolean = true,
-    onToggleOffline: () -> Unit = {},
     onSelectProfile: (String) -> Unit = {},
     onSelectLanguage: (Language) -> Unit = {},
     onCreateProfile: (String, String, Language) -> Unit = { _, _, _ -> }
@@ -109,25 +108,24 @@ fun ProfileScreen(
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = if (isOffline) Icons.Default.AirplanemodeActive else Icons.Default.AirplanemodeInactive,
-                                contentDescription = null,
+                                imageVector = if (isOffline) Icons.Default.WifiOff else Icons.Default.Wifi,
+                                contentDescription = if (isOffline) "Internet unavailable" else "Internet connected",
                                 tint = if (isOffline) Color(0xFFEF4444) else Color(0xFF10B981)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
                             Column {
-                                Text("ऑफ़लाइन / Airplane Mode", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                                Text(if (isOffline) "ऑफ़लाइन मोड सक्रिय (Offline)" else "ऑनलाइन कनेक्टेड (Online)", fontSize = 12.sp, color = Color.Gray)
+                                Text("इंटरनेट कनेक्टिविटी / Internet", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
+                                Text(
+                                    if (isOffline) "इंटरनेट उपलब्ध नहीं (Offline)" else "सत्यापित इंटरनेट कनेक्शन (Online)",
+                                    fontSize = 12.sp,
+                                    color = Color.Gray
+                                )
                             }
                         }
-                        Switch(
-                            checked = isOffline,
-                            onCheckedChange = { onToggleOffline() }
-                        )
                     }
 
                     HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
