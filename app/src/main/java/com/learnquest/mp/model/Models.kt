@@ -19,7 +19,8 @@ data class StudentProfile(
 
 enum class Language(val displayName: String, val code: String) {
     HINDI("हिन्दी (Hindi)", "hi"),
-    ENGLISH("English", "en")
+    ENGLISH("English", "en"),
+    HINGLISH("Hinglish (मिक्स)", "hinglish")
 }
 
 /**
