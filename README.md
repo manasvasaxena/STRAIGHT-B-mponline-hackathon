@@ -1,368 +1,147 @@
-# LearnQuest MP
+# 🚀 LearnQuest MP (SUTRA)
+### *Learning that doesn't wait for network.*
 
-### Learning that doesn't wait for network.
+[![MP Board Curriculum](https://img.shields.io/badge/Curriculum-MP%20Board%20%2F%20NCERT-orange.svg)](https://mpbse.nic.in/)
+[![Android](https://img.shields.io/badge/Platform-Android%20%7C%20Jetpack%20Compose-green.svg)](https://developer.android.com/)
+[![Web Portal](https://img.shields.io/badge/Web%20Portal-HTML5%20%2F%20JS-blue.svg)](#-web-portal--teacher-dashboard)
+[![Offline First](https://img.shields.io/badge/Architecture-Offline--First%20%2B%20Wi--Fi%20Direct-brightgreen.svg)](#-key-features--innovations)
+[![Languages](https://img.shields.io/badge/Languages-Hindi%20%7C%20Hinglish%20%7C%20English-purple.svg)](#-trilingual--vernacular-support)
 
-LearnQuest MP is an **offline-first, AI-powered learning platform** designed for students in rural and tribal regions of Madhya Pradesh.
+---
 
-It combines offline learning, adaptive quizzes, vernacular AI assistance, career guidance, verified scholarship discovery, and teacher support in a low-bandwidth architecture.
+## 📌 Overview
 
-## Problem
+**LearnQuest MP** (codenamed **SUTRA**) is an **offline-first, AI-powered educational ecosystem** custom-tailored for students in rural, remote, and tribal regions of Madhya Pradesh. 
 
-Students in rural and tribal regions may face:
+Designed around intermittent or completely zero connectivity, LearnQuest MP ensures uninterrupted quality education by coupling local-first storage with **P2P Wi-Fi Direct quiz battles**, **curriculum-grounded offline doubt solving**, **verified scholarship matching**, and **local teacher escalation**.
 
-- Unreliable or limited internet connectivity
-- Language barriers
-- Limited access to quality educational resources
-- Lack of career awareness
-- Difficulty discovering relevant scholarships
-- Limited access to teachers and mentors
-- Low-end or shared Android devices
+---
 
-Most EdTech platforms assume stable internet and continuous online access. LearnQuest MP is designed around intermittent or zero connectivity.
+## 🌟 Key Features & Innovations
 
-## Solution
+### 📱 1. P2P Offline Quiz Battle (Wi-Fi Direct)
+* **Zero Internet Multiplayer**: Engage in live 2-player competitive quizzes with nearby classmates over native Android **Wi-Fi Direct** and direct TCP socket communication—no internet or Wi-Fi router required!
+* **Synchronized Gameplay**: Auto host discovery, real-time lobby state, simultaneous question presentation, timed answer submission, and immediate score breakdown.
+* **XP & Gamification**: Winner (+50 XP), Draw (+25 XP), and Loss (+10 XP) rewards with anti-farming controls and direct recommendations to study weak topics.
 
-The platform allows students to:
+---
 
-- Download lessons level-by-level
-- Learn and practice offline
-- Track progress locally
-- Ask doubts using text or voice
-- Get cached knowledge-based answers offline
-- Synchronize progress when connectivity returns
-- Discover verified scholarships
-- Explore career pathways
-- Escalate unresolved doubts to teachers/mentors
-- Use separate profiles on a shared device
+### 🛡️ 2. Streak Shield & Offline-First Engine
+* **Uninterrupted Learning**: Progress, quiz responses, XP gains, and mastery levels are written instantly to an encrypted local SQLite/Room database.
+* **Streak Protection**: Offline activity protects learning streaks even when users remain off the grid for days or weeks.
+* **Resumable Downloads & Delta Sync**: Package content level-by-level with versioning and background queueing (`WorkManager`) that syncs deltas seamlessly once network returns.
 
-## Key Innovations
+---
 
-### 1. Offline-First Architecture
+### 👥 3. Multi-Profile Shared Device Support
+* Built specifically for households or rural classrooms sharing a single low-end Android phone.
+* Multiple students can switch profiles instantly with isolated XP, mastery badges, streak counts, and learning histories.
 
-Offline capability is part of the core architecture.
+---
 
-- Local-first data storage
-- Level-wise content downloads
-- Local progress tracking
-- Delta synchronization
-- Resumable downloads
-- Conflict resolution
+### 🤖 4. Curriculum-Grounded RAG & Offline AI Fallback
+* **Online RAG**: Uses Retrieval-Augmented Generation over curated MP Board / NCERT syllabus, textbooks, and notes.
+* **Offline AI Solver**: Instant answers powered by cached key concepts, glossaries, local rule matching, and pre-rendered markdown lesson notes.
+* **Teacher Escalation Queue**: Low-confidence doubts are automatically queued and escalated to local MP teachers and mentors upon reconnecting.
 
-### 2. Streak Shield
+---
 
-Learning activity is stored locally so connectivity problems do not unfairly interrupt a student's learning streak.
+### 🌐 5. Web Portal & Teacher Dashboard
+* **Web Portal (`/web`)**: Interactive browser interface for web-based quiz practice, content navigation, and offline status simulation.
+* **Teacher Dashboard (`/webdev`)**: Admin & mentor portal to track student mastery, review escalated doubts, manage lesson packages, and publish custom quiz challenges.
 
-### 3. Shared Device / Multi-Profile
+---
 
-Multiple students can use the same Android device while maintaining separate progress, XP, quiz results, mastery, streaks, and learning history.
+### 🎓 6. Verified Scholarship & Career Pathway Discovery
+* **Curated Opportunities**: Direct filtering of genuine government and institutional scholarships (e.g., *Mukhya Mantri Medhavi Vidyarthi Yojna*, *Post Matric Scholarship for SC/ST/OBC*).
+* **Rule-Based Career Guidance**: Matches student interests and academic strengths with relevant vocational and higher education pathways.
 
-### 4. Curriculum-Grounded AI
+---
 
-The online AI tutor uses Retrieval-Augmented Generation (RAG) over curated educational resources such as syllabus, textbooks, lecture material, and institutional resources.
+### 🗣️ 7. Trilingual & Vernacular Support
+* Native toggle between **Hindi (हिंदी)**, **Hinglish (हिंग्लिश)**, and **English**.
+* Built-in Android Speech-to-Text and Text-to-Speech (TTS) engine integration for voice-assisted offline learning.
 
-### 5. Offline AI Fallback
+---
 
-A live LLM is not assumed to work without connectivity. Offline support uses cached FAQs, key concepts, glossary, previous explanations, and lightweight local matching/rules. Unresolved questions can be queued for processing after reconnection.
-
-### 6. Verified Scholarship Discovery
-
-Scholarships are stored in a curated database rather than generated by an LLM. The system can filter opportunities using eligibility, course requirements, location, student attributes, deadline, official source, and verification date.
-
-### 7. Adaptive Learning
-
-A rule-based mastery engine determines the next learning action.
-
-| Quiz Score | State | Action |
-|---|---|---|
-| `< 60%` | Weak | Revision + extra practice |
-| `60–84%` | Developing | Additional practice |
-| `≥ 85%` | Mastered | Unlock next level |
-
-## Architecture
+## 🏗️ Technical Architecture
 
 ```text
-                    CLOUD BACKEND
-        ┌─────────────────────────────────┐
-        │ FastAPI / Backend                │
-        │ PostgreSQL                       │
-        │ RAG / Vector DB                  │
-        │ Scholarship DB                   │
-        │ Teacher Services                 │
-        └───────────────┬─────────────────┘
-                        │
-                 Intermittent Network
-                        │
-                    Delta Sync
-                        │
-        ┌───────────────▼─────────────────┐
-        │          ANDROID APP             │
-        │ Kotlin + Jetpack Compose         │
-        │                                  │
-        │ Room / SQLite                    │
-        │ • Student Profiles               │
-        │ • Progress                       │
-        │ • Quiz Results                   │
-        │ • XP / Streaks                   │
-        │ • Cached Content                 │
-        │ • Offline Knowledge              │
-        │                                  │
-        │ WorkManager + Sync Queue         │
-        └──────────────────────────────────┘
+                                  CLOUD BACKEND / WEB
+                   ┌──────────────────────────────────────────────┐
+                   │  FastAPI / Python Service                     │
+                   │  PostgreSQL Database                         │
+                   │  RAG Vector DB (Curated MP Board Syllabus)   │
+                   │  Teacher & Mentor Escalation Dashboard       │
+                   └──────────────────────┬───────────────────────┘
+                                          │
+                                Intermittent Network
+                                          │
+                                 Delta Sync Queue
+                                          │
+    ┌─────────────────────────────────────┴─────────────────────────────────────┐
+    │                              ANDROID CLIENT                               │
+    │                      (Kotlin + Jetpack Compose)                           │
+    │                                                                           │
+    │  ┌────────────────────────┐                   ┌────────────────────────┐  │
+    │  │     Local Storage      │                   │   P2P Quiz Engine      │  │
+    │  │  • Room / SQLite DB    │                   │  • Wi-Fi Direct        │  │
+    │  │  • Student Profiles    │◄─────────────────►│  • TCP Socket Comms    │  │
+    │  │  • Offline PKGS Notes  │                   │  • Realtime Lobby      │  │
+    │  │  • Sync Queue          │                   │  • Offline Multiplayer │  │
+    │  └────────────────────────┘                   └────────────────────────┘  │
+    └───────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Tech Stack
+---
 
-### Android
+## 🛠️ Tech Stack
 
-- Kotlin
-- Jetpack Compose
-- Android SDK
-- Room / SQLite
-- WorkManager
-- DataStore
+| Domain | Technology / Library |
+| :--- | :--- |
+| **Android Framework** | Kotlin, Jetpack Compose, Material 3, Coroutines & Flow |
+| **Local Persistence** | Room Database, SQLite, DataStore |
+| **P2P Connectivity** | Android Wi-Fi Direct (`WifiP2pManager`), Java Socket API, JSON Protocol |
+| **Offline Rendering** | Custom Compose Markdown Engine, Embedded MP Board PKGS Bundles |
+| **Voice & Speech** | Android Text-To-Speech (TTS Engine), SpeechRecognizer |
+| **Web & Teacher Tools** | HTML5, CSS3 (Modern Glassmorphism), JavaScript (ES6+), Python |
 
-### Backend
+---
 
-- Python
-- FastAPI
-- PostgreSQL
-- REST APIs
-
-### AI / RAG
-
-- Retrieval-Augmented Generation
-- Curated curriculum knowledge base
-- Vector search
-- Online LLM API
-
-### Voice
-
-- Android Speech-to-Text
-- Android Text-to-Speech
-- Bhashini where applicable
-
-### Low-Bandwidth Optimization
-
-- AVIF / WebP
-- Opus audio
-- Gzip / Brotli
-- Delta synchronization
-- Chunked and resumable downloads
-
-## User Flow
+## 📁 Repository Structure
 
 ```text
-Onboarding
-    ↓
-Student Profile
-    ↓
-Download Learning Level
-    ↓
-Offline Study
-    ↓
-Quiz / Practice
-    ↓
-Mastery Check
-    ↓
-Weak Topic → Revision
-    │
-    └── Mastered → Next Level
-    ↓
-Offline Doubt
-    ↓
-Cached Knowledge
-    ↓
-Unresolved → Sync → Cloud RAG / Teacher
-    ↓
-Career + Scholarship
+STRAIGHT-B-mponline-hackathon/
+├── app/                        # Android Native App (Kotlin + Compose)
+│   └── src/main/java/com/learnquest/mp/
+│       ├── data/              # Repositories, Room DB, Models, Connectivity Observers
+│       ├── navigation/        # Jetpack Compose Navigation Graph & Top Header
+│       ├── p2p/               # Wi-Fi Direct Manager, Socket Comms, Battle Protocol
+│       ├── ui/                # Screens (Home, QuizBattle, Doubt, Learn, Explore, Profile)
+│       └── markdown/          # Custom Local Markdown Content Renderer
+├── PKGS/                       # Bundled MP Board Curriculum Content (Class 6 Math, Science, Hindi, etc.)
+├── web/                        # Web Student Portal
+├── webdev/                     # Web Teacher / Mentor Dashboard
+├── l-spec/                     # L-Spec Change Specifications & Design History
+├── tests/                      # Python Automated Test Suite for Features & Quiz Publishing
+└── README.md                   # Project Documentation
 ```
 
-## Offline Synchronization
+---
 
-When offline:
+## 🎯 Hackathon Demo Flow
 
-```text
-Student Action → Local Database → Sync Queue
-```
+1. **Simulate Rural Offline State**: Toggle Airplane Mode on device or enable Offline Mode in app header.
+2. **Multi-Profile Switch**: Select or create student profile (*e.g., Rahul - Class 6*).
+3. **P2P Quiz Battle**: Open Quiz Battle, pair two phones via Wi-Fi Direct without internet, and play a synchronized live quiz.
+4. **Offline Learning & Doubt Solving**: Open Class 6 Science PKGS notes; ask a question to receive instant offline cached answers.
+5. **Scholarships & Guidance**: Explore verified MP scholarships filtered by eligibility and view career pathways.
+6. **Reconnect & Delta Sync**: Turn off Airplane Mode and trigger Sync Queue to push offline progress, quiz results, and escalated doubts to the backend.
 
-When connectivity returns:
-
-```text
-Sync Queue → Delta Updates → Server → Conflict Resolution → Updated Local State
-```
-
-Example merge rules:
-
-- XP → additive merge
-- Completed lesson → logical OR
-- Settings → latest timestamp wins
-- Progress → merge rather than replacing the complete local state
-
-## Low-Bandwidth Design
-
-The application prioritizes lightweight content:
-
-```text
-Text
- ↓
-Compressed Images
- ↓
-Short Audio
- ↓
-Heavy Media only when necessary
-```
-
-Content is packaged into level-wise bundles with version and size information. Storage management can use essential packs and removal of unused content.
-
-## Vernacular Learning
-
-The MVP focuses on:
-
-- Hindi
-- English
-
-The architecture can later support additional regional and tribal languages through localized content and audio.
-
-## Teacher / Mentor Support
-
-Difficult or low-confidence doubts can be escalated:
-
-```text
-Student → Offline Knowledge / AI → Low Confidence → Escalation Queue → Teacher / Mentor
-```
-
-Teacher support can include students needing help, weak topics, escalated doubts, quiz trends, and revision requirements.
-
-## Privacy
-
-The platform follows a local-first approach.
-
-Principles:
-
-- Minimize collected data
-- Keep learning progress local where possible
-- Secure local storage
-- Avoid sending unnecessary sensitive information to external AI services
-- Give users appropriate control over sensitive data
-
-## MVP
-
-### Must Have
-
-- Offline level-wise learning
-- Local progress
-- Airplane-mode demonstration
-- Delta synchronization
-- Conflict handling
-- Rule-based adaptive learning
-- Online RAG
-- Offline FAQ / knowledge fallback
-- XP and levels
-- Mastery badges
-- Streak Shield
-- Hindi + English
-- Multi-profile
-- Data Saver
-- Curated scholarship data
-- Rule-based career matching
-
-### Should Have
-
-- Daily puzzles
-- Teacher inbox
-- Parent voice summary
-- Hindi/English voice interaction
-
-### Future
-
-- Full tribal-language AI voice
-- ML-based personalization
-- Community Hub
-- P2P content sharing
-- Larger mentor networks
-- Cross-device offline leaderboards
-
-## Hackathon Demo
-
-1. Show the rural connectivity problem.
-2. Open the Hindi interface.
-3. Create/select a student profile.
-4. Download a learning level.
-5. Turn on airplane mode.
-6. Complete a lesson and quiz.
-7. Show XP, mastery, and Streak Shield.
-8. Ask an offline doubt.
-9. Show adaptive revision.
-10. Show career and verified scholarship information.
-11. Reconnect to the internet.
-12. Demonstrate delta synchronization.
-13. Show teacher/mentor escalation.
-
-### Demo Message
+---
 
 > **The internet went away. Learning didn't.**
 
-## Development Roadmap
+---
 
-### Week 1 — Offline Foundation
-
-- Android project
-- Kotlin + Compose
-- Room database
-- Student profiles
-- Local content
-- Offline progress
-
-### Week 2 — Sync + Content
-
-- Level downloads
-- Content versioning
-- Sync queue
-- Delta synchronization
-- Conflict handling
-
-### Week 3 — Learning Engine
-
-- Quiz engine
-- Mastery rules
-- XP
-- Badges
-- Streak Shield
-- Adaptive revision
-
-### Week 4 — AI + Opportunities
-
-- RAG pipeline
-- Offline FAQ
-- Scholarship database
-- Career matching
-- Teacher escalation
-
-### Final Polish
-
-- Hindi UI
-- Voice interaction
-- Low-bandwidth optimization
-- Demo data
-- UI/UX refinement
-
-## Project Status
-
-**Hackathon MVP — In Development**
-
-The MVP intentionally focuses on a small number of deeply implemented systems rather than attempting every proposed feature at once.
-
-## Vision
-
-LearnQuest MP aims to make quality learning available even when connectivity, bandwidth, language, devices, and access to mentors are limited.
-
-> **Learning that doesn't wait for network.**
-
-## License
-
-Add your preferred license here.
-
-
-directory structure
-
-
+**Made by Straight B**
