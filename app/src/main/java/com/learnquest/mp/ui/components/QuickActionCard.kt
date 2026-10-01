@@ -11,10 +11,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.data.model.QuickAction
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 
 /** Tappable card used in the 2x2 Quick Actions grid. */
 @Composable
-fun QuickActionCard(action: QuickAction, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun QuickActionCard(
+    action: QuickAction,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    appLanguage: Language = Language.ENGLISH
+) {
+    val strings = appLanguage.appStrings()
     Card(
         onClick = onClick,
         modifier = modifier,
@@ -31,7 +39,17 @@ fun QuickActionCard(action: QuickAction, onClick: () -> Unit, modifier: Modifier
         ) {
             Text(action.emoji, fontSize = 32.sp, modifier = Modifier.clearAndSetSemantics { })
             Spacer(Modifier.height(6.dp))
-            Text(action.label, style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
+            Text(
+                when (action.label) {
+                    "Downloads" -> strings.t("Downloads", "डाउनलोड", "Downloads")
+                    "Ask AI" -> strings.t("Ask AI", "AI से पूछें", "AI से पूछें")
+                    "Voice Tutor" -> strings.t("Voice Tutor", "वॉइस ट्यूटर", "Voice Tutor")
+                    "Career" -> strings.t("Career", "करियर", "Career")
+                    else -> action.label
+                },
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }

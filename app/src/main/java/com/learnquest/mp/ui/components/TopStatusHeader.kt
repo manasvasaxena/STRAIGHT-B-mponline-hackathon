@@ -18,6 +18,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.ui.theme.ForestGreen
 import com.learnquest.mp.ui.theme.SaffronPrimary
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 
 /**
  * Minimalist top header containing live connectivity and sync status.
@@ -30,8 +32,10 @@ fun TopStatusHeader(
     streakDays: Int,
     isProtected: Boolean,
     pendingSyncCount: Int,
-    onSyncClick: () -> Unit = {}
+    onSyncClick: () -> Unit = {},
+    appLanguage: Language = Language.ENGLISH
 ) {
+    val strings = appLanguage.appStrings()
     Surface(
         color = MaterialTheme.colorScheme.surface,
         tonalElevation = 1.dp
@@ -98,7 +102,7 @@ fun TopStatusHeader(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Sync,
-                            contentDescription = "Sync Queue",
+                            contentDescription = strings.t("Sync Queue", "सिंक कतार", "Sync Queue"),
                             tint = if (pendingSyncCount > 0) SaffronPrimary else Color.Gray,
                             modifier = Modifier.size(22.dp)
                         )
@@ -112,7 +116,7 @@ fun TopStatusHeader(
                 ) {
                     Icon(
                         imageVector = if (isOffline) Icons.Default.WifiOff else Icons.Default.Wifi,
-                        contentDescription = if (isOffline) "Internet unavailable" else "Internet connected",
+                        contentDescription = if (isOffline) strings.t("Internet unavailable", "इंटरनेट उपलब्ध नहीं", "Internet unavailable") else strings.t("Internet connected", "इंटरनेट जुड़ा है", "Internet connected"),
                         tint = if (isOffline) Color(0xFFEF4444) else ForestGreen,
                         modifier = Modifier.size(22.dp)
                     )

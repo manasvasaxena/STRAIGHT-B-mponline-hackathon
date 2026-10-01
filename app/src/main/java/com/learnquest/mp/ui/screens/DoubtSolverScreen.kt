@@ -13,6 +13,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.model.DoubtQuery
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 import com.learnquest.mp.ui.theme.ForestGreen
 import com.learnquest.mp.ui.theme.SaffronPrimary
 import com.learnquest.mp.ui.theme.WarningOrange
@@ -25,8 +27,10 @@ fun DoubtSolverScreen(
     isOffline: Boolean,
     doubtsList: List<DoubtQuery>,
     onAskDoubt: (query: String) -> Unit,
-    onEscalateToTeacher: (doubtId: String) -> Unit
+    onEscalateToTeacher: (doubtId: String) -> Unit,
+    appLanguage: Language = Language.ENGLISH
 ) {
+    val strings = appLanguage.appStrings()
     var queryInput by remember { mutableStateOf("") }
 
     Column(
@@ -35,7 +39,7 @@ fun DoubtSolverScreen(
             .padding(12.dp)
     ) {
         Text(
-            text = "शंका समाधान / AI Doubt Solver",
+            text = strings.t("AI Doubt Solver", "शंका समाधान", "AI Doubt Solver"),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
@@ -51,9 +55,9 @@ fun DoubtSolverScreen(
         ) {
             Text(
                 text = if (isOffline)
-                    "⚡ OFFLINE MODE: Answers are served from cached curriculum FAQs & offline knowledge base."
+                    strings.t("⚡ OFFLINE MODE: Answers are served from cached curriculum FAQs & offline knowledge base.", "⚡ ऑफलाइन मोड: उत्तर कैश किए गए पाठ्यक्रम FAQ और ऑफलाइन ज्ञान आधार से दिए जाते हैं।", "⚡ OFFLINE MODE: Answers cached FAQs aur offline knowledge base se milenge.")
                 else
-                    "🌐 ONLINE MODE: Connected to Curriculum RAG Engine with LLM synthesis.",
+                    strings.t("🌐 ONLINE MODE: Connected to Curriculum RAG Engine with LLM synthesis.", "🌐 ऑनलाइन मोड: पाठ्यक्रम RAG इंजन से जुड़ा है।", "🌐 ONLINE MODE: Curriculum RAG Engine se connected hai."),
                 modifier = Modifier.padding(10.dp),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -70,7 +74,7 @@ fun DoubtSolverScreen(
             OutlinedTextField(
                 value = queryInput,
                 onValueChange = { queryInput = it },
-                placeholder = { Text("प्रश्न पूछें... (Ask a doubt in Hindi/English)") },
+                placeholder = { Text(strings.t("Ask a question...", "प्रश्न पूछें...", "Question पूछें...")) },
                 modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -83,14 +87,14 @@ fun DoubtSolverScreen(
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
             ) {
-                Text("पूछें")
+                Text(strings.t("Ask", "पूछें", "Ask करें"))
             }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            text = "हालिया प्रश्न / Recent Queries",
+            text = strings.t("Recent Queries", "हालिया प्रश्न", "Recent Queries"),
             fontSize = 16.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(bottom = 8.dp)
@@ -100,7 +104,8 @@ fun DoubtSolverScreen(
             items(doubtsList) { doubt ->
                 DoubtItemCard(
                     doubt = doubt,
-                    onEscalate = { onEscalateToTeacher(doubt.id) }
+                    onEscalate = { onEscalateToTeacher(doubt.id) },
+                    appLanguage = appLanguage
                 )
             }
         }
@@ -110,8 +115,10 @@ fun DoubtSolverScreen(
 @Composable
 fun DoubtItemCard(
     doubt: DoubtQuery,
-    onEscalate: () -> Unit
+    onEscalate: () -> Unit,
+    appLanguage: Language = Language.ENGLISH
 ) {
+    val strings = appLanguage.appStrings()
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -119,7 +126,7 @@ fun DoubtItemCard(
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
-                text = "Q: ${doubt.questionText}",
+                text = "${strings.t("Q", "प्रश्न", "Q")}: ${doubt.questionText}",
                 fontWeight = FontWeight.Bold,
                 fontSize = 15.sp
             )
@@ -132,7 +139,7 @@ fun DoubtItemCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = doubt.offlineAnswer ?: "उत्तरात्मक उत्तर प्राप्त नहीं हुआ।",
+                    text = doubt.offlineAnswer ?: strings.t("No answer available yet.", "अभी उत्तर उपलब्ध नहीं है।", "Abhi answer available nahi hai."),
                     modifier = Modifier.padding(8.dp),
                     fontSize = 13.sp,
                     color = Color.DarkGray
@@ -147,7 +154,7 @@ fun DoubtItemCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = if (doubt.isResolvedOffline) "✓ Offline Match (कैश्ड उत्तर)" else "⚠️ Requires Online RAG / Escalation",
+                    text = if (doubt.isResolvedOffline) strings.t("✓ Offline Match", "✓ ऑफलाइन मिलान", "✓ Offline Match") else strings.t("⚠️ Requires Online RAG / Escalation", "⚠️ ऑनलाइन RAG / शिक्षक को भेजना ज़रूरी", "⚠️ Online RAG / escalation चाहिए"),
                     fontSize = 11.sp,
                     color = if (doubt.isResolvedOffline) ForestGreen else WarningOrange,
                     fontWeight = FontWeight.Bold
@@ -155,7 +162,7 @@ fun DoubtItemCard(
 
                 if (doubt.isEscalatedToTeacher) {
                     Text(
-                        text = "📩 Teacher Escalated",
+                        text = strings.t("📩 Teacher Escalated", "📩 शिक्षक को भेजा गया", "📩 Teacher को भेजा गया"),
                         fontSize = 11.sp,
                         color = Color.Gray,
                         fontWeight = FontWeight.Bold
@@ -165,7 +172,7 @@ fun DoubtItemCard(
                         onClick = onEscalate,
                         shape = RoundedCornerShape(6.dp)
                     ) {
-                        Text("शिक्षक को भेजें (Escalate)", fontSize = 11.sp)
+                        Text(strings.t("Escalate to teacher", "शिक्षक को भेजें", "Teacher को भेजें"), fontSize = 11.sp)
                     }
                 }
             }

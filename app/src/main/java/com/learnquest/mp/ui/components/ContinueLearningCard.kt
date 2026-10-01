@@ -13,14 +13,20 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.data.model.LearningTopic
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 
 /** Large card that lets the student resume their current topic. */
 @Composable
 fun ContinueLearningCard(
     topic: LearningTopic,
     onContinue: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    appLanguage: Language = Language.ENGLISH,
+    subjectLabel: String = topic.subject,
+    topicLabel: String = topic.topic
 ) {
+    val strings = appLanguage.appStrings()
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -40,10 +46,10 @@ fun ContinueLearningCard(
                 ) { Text(topic.emoji, fontSize = 36.sp) }
 
                 Column(Modifier.weight(1f)) {
-                    Text(topic.subject, style = MaterialTheme.typography.bodyMedium,
+                    Text(subjectLabel, style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(topic.topic, style = MaterialTheme.typography.titleLarge)
-                    Text("Level ${topic.level}", style = MaterialTheme.typography.labelLarge,
+                    Text(topicLabel, style = MaterialTheme.typography.titleLarge)
+                    Text(strings.level(topic.level), style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary)
                 }
             }
@@ -53,11 +59,11 @@ fun ContinueLearningCard(
                 color = MaterialTheme.colorScheme.secondary,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
-            Text("${topic.progressPercent}% complete", style = MaterialTheme.typography.bodyMedium)
+            Text(strings.complete(topic.progressPercent), style = MaterialTheme.typography.bodyMedium)
             Button(
                 onClick = onContinue,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
-            ) { Text("Continue Learning", style = MaterialTheme.typography.titleMedium) }
+            ) { Text(strings.t("Continue Learning", "सीखना जारी रखें", "Continue Learning"), style = MaterialTheme.typography.titleMedium) }
         }
     }
 }

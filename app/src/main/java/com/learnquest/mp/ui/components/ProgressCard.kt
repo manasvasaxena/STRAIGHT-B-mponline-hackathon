@@ -9,10 +9,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.learnquest.mp.data.model.StudentProgress
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 
 /** Prominent card: level, XP, progress bar and streak. */
 @Composable
-fun ProgressCard(progress: StudentProgress, modifier: Modifier = Modifier) {
+fun ProgressCard(
+    progress: StudentProgress,
+    modifier: Modifier = Modifier,
+    appLanguage: Language = Language.ENGLISH
+) {
+    val strings = appLanguage.appStrings()
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -22,7 +29,7 @@ fun ProgressCard(progress: StudentProgress, modifier: Modifier = Modifier) {
         )
     ) {
         Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Text("Level ${progress.level}", style = MaterialTheme.typography.headlineMedium)
+            Text(strings.level(progress.level), style = MaterialTheme.typography.headlineMedium)
             Text(
                 "${progress.currentXp} / ${progress.xpForNextLevel} XP",
                 style = MaterialTheme.typography.titleMedium
@@ -38,7 +45,7 @@ fun ProgressCard(progress: StudentProgress, modifier: Modifier = Modifier) {
             )
             // Percentage text so progress is not shown by the bar's color alone.
             Text(
-                "${(progress.progressFraction * 100).toInt()}% to Level ${progress.level + 1}",
+                strings.progressToLevel((progress.progressFraction * 100).toInt(), progress.level + 1),
                 style = MaterialTheme.typography.bodyMedium
             )
             Surface(
@@ -47,7 +54,7 @@ fun ProgressCard(progress: StudentProgress, modifier: Modifier = Modifier) {
                 contentColor = MaterialTheme.colorScheme.onTertiaryContainer
             ) {
                 Text(
-                    "🔥 ${progress.streakDays} Day Streak",
+                    strings.dayStreak(progress.streakDays),
                     modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold

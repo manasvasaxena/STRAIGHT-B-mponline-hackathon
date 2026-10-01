@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.R
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 import kotlinx.coroutines.delay
 
 /**
@@ -28,8 +30,10 @@ import kotlinx.coroutines.delay
  */
 @Composable
 fun StartupSplashScreen(
-    onSplashFinished: () -> Unit
+    onSplashFinished: () -> Unit,
+    appLanguage: Language = Language.ENGLISH
 ) {
+    val strings = appLanguage.appStrings()
     var startAnimation by remember { mutableStateOf(false) }
 
     val scaleAnimate by animateFloatAsState(
@@ -91,14 +95,14 @@ fun StartupSplashScreen(
             }
             Spacer(modifier = Modifier.height(20.dp))
             Text(
-                text = "LearnQuest MP",
+                text = "SUTRA",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
-                text = "डिजिटल शिक्षा | मध्य प्रदेश",
+                text = strings.t("Digital Education | Madhya Pradesh", "डिजिटल शिक्षा | मध्य प्रदेश", "Digital Education | Madhya Pradesh"),
                 fontSize = 16.sp,
                 color = Color.White.copy(alpha = 0.9f)
             )

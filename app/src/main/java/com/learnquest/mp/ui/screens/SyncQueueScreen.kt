@@ -14,6 +14,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.model.SyncQueueItem
 import com.learnquest.mp.model.SyncStatus
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 import com.learnquest.mp.ui.theme.ForestGreen
 import com.learnquest.mp.ui.theme.SaffronPrimary
 import com.learnquest.mp.ui.theme.WarningOrange
@@ -25,8 +27,10 @@ import com.learnquest.mp.ui.theme.WarningOrange
 fun SyncQueueScreen(
     syncQueue: List<SyncQueueItem>,
     isOffline: Boolean,
-    onTriggerSync: () -> Unit
+    onTriggerSync: () -> Unit,
+    appLanguage: Language = Language.ENGLISH
 ) {
+    val strings = appLanguage.appStrings()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -39,12 +43,12 @@ fun SyncQueueScreen(
         ) {
             Column {
                 Text(
-                    text = "डेल्टा सिंक कतार / Sync Queue",
+                    text = strings.t("Sync Queue", "सिंक कतार", "Sync Queue"),
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    text = "Delta updates wait locally until network reconnects",
+                    text = strings.t("Delta updates wait locally until network reconnects", "नेटवर्क जुड़ने तक बदलाव स्थानीय रूप से सुरक्षित रहते हैं", "Delta updates network reconnect hone tak locally wait karte hain"),
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -55,7 +59,7 @@ fun SyncQueueScreen(
                 enabled = !isOffline && syncQueue.isNotEmpty(),
                 colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
             ) {
-                Text("Sync Now")
+                Text(strings.t("Sync Now", "अभी सिंक करें", "Abhi Sync करें"))
             }
         }
 
@@ -69,9 +73,9 @@ fun SyncQueueScreen(
         ) {
             Text(
                 text = if (isOffline)
-                    "⚠️ Connectivity is OFF. All local actions (XP, Quiz score, Lessons) are safe in SQLite / Room sync queue."
+                    strings.t("⚠️ Connectivity is OFF. All local actions (XP, Quiz score, Lessons) are safe in SQLite / Room sync queue.", "⚠️ कनेक्टिविटी बंद है। सभी स्थानीय कार्य (XP, क्विज़ स्कोर, पाठ) SQLite / Room सिंक कतार में सुरक्षित हैं।", "⚠️ Connectivity OFF hai. XP, quiz score aur lessons sync queue mein safe hain.")
                 else
-                    "✅ Network Available. Ready to push delta updates to cloud backend with additive merge rules.",
+                    strings.t("✅ Network Available. Ready to push delta updates to cloud backend with additive merge rules.", "✅ नेटवर्क उपलब्ध है। डेल्टा अपडेट क्लाउड पर भेजने के लिए तैयार हैं।", "✅ Network available hai. Delta updates cloud par push ke liye ready hain."),
                 modifier = Modifier.padding(10.dp),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Medium
@@ -87,12 +91,12 @@ fun SyncQueueScreen(
                     .padding(30.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No pending delta updates! All data synchronized.", color = Color.Gray)
+                Text(strings.t("No pending delta updates! All data synchronized.", "कोई लंबित अपडेट नहीं! सभी डेटा सिंक है।", "No pending updates! All data synced hai."), color = Color.Gray)
             }
         } else {
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(syncQueue) { item ->
-                    SyncQueueItemCard(item = item)
+                    SyncQueueItemCard(item = item, appLanguage = appLanguage)
                 }
             }
         }
@@ -100,7 +104,8 @@ fun SyncQueueScreen(
 }
 
 @Composable
-fun SyncQueueItemCard(item: SyncQueueItem) {
+fun SyncQueueItemCard(item: SyncQueueItem, appLanguage: Language = Language.ENGLISH) {
+    val strings = appLanguage.appStrings()
     Card(
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -115,12 +120,12 @@ fun SyncQueueItemCard(item: SyncQueueItem) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Action: ${item.actionType}",
+                    text = "${strings.t("Action", "कार्य", "Action")}: ${item.actionType}",
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
                 )
                 Text(
-                    text = "Payload: ${item.payload}",
+                    text = "${strings.t("Payload", "डेटा", "Payload")}: ${item.payload}",
                     fontSize = 12.sp,
                     color = Color.DarkGray
                 )
@@ -135,7 +140,12 @@ fun SyncQueueItemCard(item: SyncQueueItem) {
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Text(
-                    text = item.status.name,
+                    text = when (item.status) {
+                        SyncStatus.PENDING -> strings.t("PENDING", "लंबित", "PENDING")
+                        SyncStatus.SYNCING -> strings.t("SYNCING", "सिंक हो रहा", "SYNCING")
+                        SyncStatus.SYNCED -> strings.t("SYNCED", "सिंक हो गया", "SYNCED")
+                        SyncStatus.FAILED -> strings.t("FAILED", "असफल", "FAILED")
+                    },
                     color = when (item.status) {
                         SyncStatus.PENDING -> WarningOrange
                         SyncStatus.SYNCED -> ForestGreen

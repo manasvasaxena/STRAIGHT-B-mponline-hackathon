@@ -7,10 +7,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.MenuBook
+import androidx.compose.material.icons.filled.CompassCalibration
 import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
@@ -26,15 +28,24 @@ import com.learnquest.mp.model.SyncStatus
 import com.learnquest.mp.ui.components.StartupSplashScreen
 import com.learnquest.mp.ui.components.TopStatusHeader
 import com.learnquest.mp.ui.screens.*
+import com.learnquest.mp.ui.appStrings
 import kotlinx.coroutines.launch
 
 /** The five bottom-navigation tabs. */
-sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
+sealed class Screen(val route: String, val labelKey: String, val icon: ImageVector) {
     data object Home : Screen("home", "Home", Icons.Filled.Home)
     data object Explore : Screen("explore", "Explore", Icons.Filled.Explore)
     data object Learn : Screen("learn", "Learn", Icons.AutoMirrored.Filled.MenuBook)
-    data object Progress : Screen("progress", "Progress", Icons.Filled.EmojiEvents)
+    data object Progress : Screen("progress", "Guidance", Icons.Filled.School)
     data object Profile : Screen("profile", "Profile", Icons.Filled.Person)
+
+    fun label(language: com.learnquest.mp.model.Language): String = when (this) {
+        Home -> language.appStrings().navHome()
+        Explore -> language.appStrings().navExplore()
+        Learn -> language.appStrings().navLearn()
+        Progress -> language.appStrings().navGuidance()
+        Profile -> language.appStrings().navProfile()
+    }
 }
 
 private val tabs = listOf(Screen.Home, Screen.Explore, Screen.Learn, Screen.Progress, Screen.Profile)
@@ -82,7 +93,8 @@ fun AppNavigation(
 
     if (showSplash) {
         StartupSplashScreen(
-            onSplashFinished = { showSplash = false }
+            onSplashFinished = { showSplash = false },
+            appLanguage = appLanguage
         )
         return
     }
@@ -96,18 +108,20 @@ fun AppNavigation(
                 val activeProfile = profiles.find { it.id == activeProfileId } ?: profiles.firstOrNull()
                 TopStatusHeader(
                     isOffline = isOffline,
-                    activeProfileName = activeProfile?.name ?: "Student",
+                    activeProfileName = activeProfile?.name ?: appLanguage.appStrings().t("Student", "विद्यार्थी", "Student"),
                     xp = activeProfile?.totalXp ?: 0,
                     streakDays = activeProfile?.streakDays ?: 0,
                     isProtected = activeProfile?.isStreakProtected ?: true,
                     pendingSyncCount = syncQueueItems.count { it.status == SyncStatus.PENDING },
-                    onSyncClick = { navController.navigate("sync_queue") }
+                    onSyncClick = { navController.navigate("sync_queue") },
+                    appLanguage = appLanguage
                 )
                 if (currentRoute == Screen.Home.route) {
                     HomeTopBar(
                         studentName = activeProfile?.name ?: "Student",
-                        onNotifications = { showMessage("Notifications: coming soon") },
-                        onProfile = { goToTab(Screen.Profile) }
+                        onNotifications = { showMessage(appLanguage.appStrings().t("Notifications: coming soon", "सूचनाएं जल्द उपलब्ध होंगी", "Notifications: soon")) },
+                        onProfile = { goToTab(Screen.Profile) },
+                        appLanguage = appLanguage
                     )
                 }
             }
@@ -119,7 +133,7 @@ fun AppNavigation(
                         selected = currentRoute == screen.route,
                         onClick = { goToTab(screen) },
                         icon = { Icon(screen.icon, contentDescription = null) },
-                        label = { Text(screen.label) },
+                        label = { Text(screen.label(appLanguage)) },
                         alwaysShowLabel = true
                     )
                 }
@@ -135,15 +149,17 @@ fun AppNavigation(
                 HomeScreen(
                     data = homeData,
                     isOffline = isOffline,
-                    onMessage = { msg ->
-                        if (msg.contains("Ask AI") || msg.contains("Doubt")) {
-                            navController.navigate("doubt_solver")
-                        } else if (msg.contains("Sync")) {
-                            navController.navigate("sync_queue")
-                        } else if (msg.contains("Downloads")) {
-                            navController.navigate("downloads")
-                        } else {
-                            showMessage(msg)
+                    appLanguage = appLanguage,
+                    onNavigate = { route ->
+                        when (route) {
+                            "explore" -> goToTab(Screen.Explore)
+                            "learn" -> goToTab(Screen.Learn)
+                            "progress" -> goToTab(Screen.Progress)
+                            "profile" -> goToTab(Screen.Profile)
+                            "doubt_solver" -> navController.navigate("doubt_solver")
+                            "downloads" -> navController.navigate("downloads")
+                            "sync_queue" -> navController.navigate("sync_queue")
+                            else -> showMessage(route)
                         }
                     }
                 )
@@ -157,14 +173,15 @@ fun AppNavigation(
             composable("doubt_solver") {
                 DoubtSolverScreen(
                     isOffline = isOffline,
+                    appLanguage = appLanguage,
                     doubtsList = emptyList(),
                     onAskDoubt = { queryText ->
                         repository.addSyncItem("DOUBT_ESCALATE", "Query: $queryText")
-                        showMessage("Query submitted!")
+                        showMessage(appLanguage.appStrings().t("Query submitted!", "प्रश्न भेज दिया गया!", "Query submit हो गई!"))
                     },
                     onEscalateToTeacher = { doubtId ->
                         repository.addSyncItem("DOUBT_ESCALATE", "Doubt ID: $doubtId")
-                        showMessage("Escalated to local MP teacher queue!")
+                        showMessage(appLanguage.appStrings().t("Escalated to local MP teacher queue!", "स्थानीय MP शिक्षक कतार में भेजा गया!", "Local MP teacher queue में भेज दिया!"))
                     }
                 )
             }
@@ -172,9 +189,10 @@ fun AppNavigation(
                 SyncQueueScreen(
                     syncQueue = syncQueueItems,
                     isOffline = isOffline,
+                    appLanguage = appLanguage,
                     onTriggerSync = {
                         repository.syncAllPending()
-                        showMessage("All pending items synced successfully!")
+                        showMessage(appLanguage.appStrings().t("All pending items synced successfully!", "सभी लंबित आइटम सफलतापूर्वक सिंक हो गए!", "All pending items sync हो गए!"))
                     }
                 )
             }
@@ -183,19 +201,20 @@ fun AppNavigation(
                     appLanguage = appLanguage,
                     isOffline = isOffline,
                     onCategoryClick = { category ->
-                        showMessage("Opening $category...")
+                        showMessage(appLanguage.appStrings().t("Opening $category...", "$category खोला जा रहा है...", "$category open हो रहा है..."))
                     }
                 )
             }
             composable(Screen.Learn.route) {
                 LearnScreen(
                     questions = quizQuestions,
+                    appLanguage = appLanguage,
                     onQuizComplete = { score, mastery ->
                         repository.addSyncItem(
                             actionType = "QUIZ_RESULT",
                             payload = "Quiz Score: $score%, Mastery: ${mastery.name}"
                         )
-                        showMessage("Quiz completed! Mastery: ${mastery.label}")
+                        showMessage(appLanguage.appStrings().t("Quiz completed! Mastery: ${appLanguage.appStrings().mastery(mastery)}", "क्विज़ पूरी! स्तर: ${appLanguage.appStrings().mastery(mastery)}", "Quiz complete! Mastery: ${appLanguage.appStrings().mastery(mastery)}"))
                     },
                     onMessage = showMessage
                 )
@@ -203,7 +222,8 @@ fun AppNavigation(
             composable(Screen.Progress.route) {
                 OpportunitiesScreen(
                     scholarships = scholarships,
-                    careers = careerPathways
+                    careers = careerPathways,
+                    appLanguage = appLanguage
                 )
             }
             composable(Screen.Profile.route) {

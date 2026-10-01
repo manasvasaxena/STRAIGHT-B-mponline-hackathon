@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.model.Language
 import com.learnquest.mp.model.StudentProfile
+import com.learnquest.mp.ui.appStrings
 import com.learnquest.mp.ui.theme.SaffronPrimary
 
 @Composable
@@ -36,9 +37,12 @@ fun ProfileScreen(
     var currentActiveId by remember { mutableStateOf(activeProfileId) }
     var newName by remember { mutableStateOf("") }
     var newGrade by remember { mutableStateOf("Class 8") }
-    var selectedLanguage by remember { mutableStateOf(Language.HINDI) }
+    var selectedLanguage by remember { mutableStateOf(selectedAppLanguage) }
 
     val activeProfile = profiles.find { it.id == currentActiveId } ?: profiles.firstOrNull()
+    val isHindi = selectedAppLanguage == Language.HINDI
+    val strings = selectedAppLanguage.appStrings()
+    fun localized(hindi: String, english: String): String = strings.t(english, hindi, "$english / $hindi")
 
     LazyColumn(
         modifier = Modifier
@@ -48,7 +52,7 @@ fun ProfileScreen(
     ) {
         item {
             activeProfile?.let { profile ->
-                ActiveUserProfileCard(profile = profile)
+                ActiveUserProfileCard(profile = profile, isHindi = isHindi, language = selectedAppLanguage)
             }
         }
 
@@ -60,23 +64,24 @@ fun ProfileScreen(
             ) {
                 Column {
                     Text(
-                        text = "छात्र प्रोफ़ाइल (Switch User)",
+                        text = localized("छात्र प्रोफ़ाइल (प्रोफ़ाइल बदलें)", "Student Profiles (Switch User)"),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "Shared device multi-user selection",
+                        text = localized("एक ही डिवाइस पर बहु-उपयोगकर्ता चयन", "Shared device multi-user selection"),
                         fontSize = 12.sp,
                         color = Color.Gray
                     )
                 }
                 Button(
                     onClick = { showAddDialog = true },
-                    colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
+                    colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary),
+                    shape = RoundedCornerShape(10.dp)
                 ) {
                     Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("नया जोड़ें")
+                    Text(localized("नया जोड़ें", "Add New"))
                 }
             }
         }
@@ -85,6 +90,8 @@ fun ProfileScreen(
             ProfileCard(
                 profile = profile,
                 isSelected = profile.id == currentActiveId,
+                isHindi = isHindi,
+                language = selectedAppLanguage,
                 onSelect = {
                     currentActiveId = profile.id
                     onSelectProfile(profile.id)
@@ -94,44 +101,21 @@ fun ProfileScreen(
 
         item {
             Card(
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFF8FAFC)),
-                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(containerColor = Color.White),
+                shape = RoundedCornerShape(16.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(18.dp)) {
                     Text(
-                        text = "⚙️ ऐप सेटिंग्स & कनेक्टिविटी Control",
+                        text = localized("⚙️ ऐप सेटिंग्स एवं भाषा", "⚙️ App Settings & Language"),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = if (isOffline) Icons.Default.WifiOff else Icons.Default.Wifi,
-                                contentDescription = if (isOffline) "Internet unavailable" else "Internet connected",
-                                tint = if (isOffline) Color(0xFFEF4444) else Color(0xFF10B981)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Column {
-                                Text("इंटरनेट कनेक्टिविटी / Internet", fontWeight = FontWeight.SemiBold, fontSize = 14.sp)
-                                Text(
-                                    if (isOffline) "इंटरनेट उपलब्ध नहीं (Offline)" else "सत्यापित इंटरनेट कनेक्शन (Online)",
-                                    fontSize = 12.sp,
-                                    color = Color.Gray
-                                )
-                            }
-                        }
-                    }
-
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     Text(
-                        text = "🌐 ऐप भाषा / App Language",
+                        text = localized("🌐 पसंदीदा ऐप भाषा", "🌐 Preferred App Language"),
                         fontWeight = FontWeight.SemiBold,
                         fontSize = 14.sp
                     )
@@ -144,8 +128,11 @@ fun ProfileScreen(
                             val isSelected = selectedAppLanguage == lang
                             FilterChip(
                                 selected = isSelected,
-                                onClick = { onSelectLanguage(lang) },
-                                label = { Text(lang.displayName, fontSize = 12.sp) },
+                                onClick = {
+                                    selectedLanguage = lang
+                                    onSelectLanguage(lang)
+                                },
+                                label = { Text(lang.displayName, fontSize = 13.sp, fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal) },
                                 colors = FilterChipDefaults.filterChipColors(
                                     selectedContainerColor = SaffronPrimary,
                                     selectedLabelColor = Color.White
@@ -154,22 +141,47 @@ fun ProfileScreen(
                         }
                     }
 
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp))
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = if (isOffline) Icons.Default.WifiOff else Icons.Default.Wifi,
+                            contentDescription = null,
+                            tint = if (isOffline) Color(0xFFEF4444) else Color(0xFF10B981)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                localized("इंटरनेट स्टेटस", "Internet Connectivity"),
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                if (isOffline) {
+                                    localized("ऑफ़लाइन मोड (स्थानीय डेटा का उपयोग)", "Offline Mode (Local Storage)")
+                                } else {
+                                    localized("ऑनलाइन (इंटरनेट से जुड़ा हुआ)", "Online (Connected)")
+                                },
+                                fontSize = 12.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 14.dp))
 
                     SettingItem(
-                        icon = Icons.Default.WifiOff,
-                        title = "Offline Storage Used",
+                        icon = Icons.Default.SdCard,
+                        title = localized("ऑफ़लाइन स्टोरेज स्पेस", "Offline Storage Used"),
                         value = "14.2 MB / 500 MB"
                     )
                     SettingItem(
                         icon = Icons.Default.Sync,
-                        title = "Sync Status",
-                        value = "All changes synced"
-                    )
-                    SettingItem(
-                        icon = Icons.Default.Language,
-                        title = "Default Language",
-                        value = "Hindi / हिन्दी"
+                        title = localized("सिंक स्थिति", "Sync Status"),
+                        value = localized("सभी परिवर्तन सिंक हैं", "All changes synced")
                     )
                 }
             }
@@ -179,20 +191,20 @@ fun ProfileScreen(
     if (showAddDialog) {
         AlertDialog(
             onDismissRequest = { showAddDialog = false },
-            title = { Text("नया छात्र जोड़ें (Add Student)") },
+            title = { Text(localized("नया छात्र जोड़ें", "Add Student Profile")) },
             text = {
                 Column {
                     OutlinedTextField(
                         value = newName,
                         onValueChange = { newName = it },
-                        label = { Text("नाम (Student Name)") },
+                        label = { Text(localized("छात्र का नाम", "Student Name")) },
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = newGrade,
                         onValueChange = { newGrade = it },
-                        label = { Text("कक्षा (Class/Grade)") },
+                        label = { Text(localized("कक्षा", "Class / Grade")) },
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -205,14 +217,15 @@ fun ProfileScreen(
                             newName = ""
                             showAddDialog = false
                         }
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
                 ) {
-                    Text("सहेजे (Save)")
+                    Text(localized("सहेजें", "Save"))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showAddDialog = false }) {
-                    Text("रद्द करें (Cancel)")
+                    Text(localized("रद्द करें", "Cancel"))
                 }
             }
         )
@@ -220,19 +233,21 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ActiveUserProfileCard(profile: StudentProfile) {
+fun ActiveUserProfileCard(profile: StudentProfile, isHindi: Boolean, language: Language = if (isHindi) Language.HINDI else Language.ENGLISH) {
+    val strings = language.appStrings()
     Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFFFFF7ED)),
+        border = CardDefaults.outlinedCardBorder().copy(
+            brush = androidx.compose.ui.graphics.SolidColor(Color(0xFFFED7AA))
+        ),
+        shape = RoundedCornerShape(20.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+        Column(modifier = Modifier.padding(18.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
-                        .size(60.dp)
+                        .size(64.dp)
                         .clip(CircleShape)
                         .background(SaffronPrimary),
                     contentAlignment = Alignment.Center
@@ -241,7 +256,7 @@ fun ActiveUserProfileCard(profile: StudentProfile) {
                         imageVector = Icons.Default.Person,
                         contentDescription = null,
                         tint = Color.White,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(38.dp)
                     )
                 }
                 Spacer(modifier = Modifier.width(16.dp))
@@ -249,26 +264,27 @@ fun ActiveUserProfileCard(profile: StudentProfile) {
                     Text(
                         text = profile.name,
                         fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
+                        color = Color(0xFF7C2D12)
                     )
                     Text(
                         text = "${profile.grade} • ${profile.preferredLanguage.displayName}",
                         fontSize = 14.sp,
-                        color = Color.DarkGray
+                        color = Color(0xFF9A3412)
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(18.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround
             ) {
                 ProfileStat(icon = "⚡", label = "XP", value = "${profile.totalXp}")
-                ProfileStat(icon = "🔥", label = "Streak", value = "${profile.streakDays} Days")
+                ProfileStat(icon = "🔥", label = strings.t("Streak", "स्ट्रीक", "Streak"), value = "${profile.streakDays} ${strings.t("Days", "दिन", "Days")}")
                 ProfileStat(
                     icon = "🛡️",
-                    label = "Shield",
-                    value = if (profile.isStreakProtected) "Active" else "Off"
+                    label = strings.t("Shield", "सुरक्षा कवच", "Shield"),
+                    value = if (profile.isStreakProtected) strings.t("Active", "सक्रिय", "Active") else strings.t("Off", "बंद", "Off")
                 )
             }
         }
@@ -278,7 +294,7 @@ fun ActiveUserProfileCard(profile: StudentProfile) {
 @Composable
 fun ProfileStat(icon: String, label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(text = "$icon $value", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+        Text(text = "$icon $value", fontWeight = FontWeight.Bold, fontSize = 16.sp, color = Color(0xFF431407))
         Text(text = label, fontSize = 12.sp, color = Color.Gray)
     }
 }
@@ -287,17 +303,20 @@ fun ProfileStat(icon: String, label: String, value: String) {
 fun ProfileCard(
     profile: StudentProfile,
     isSelected: Boolean,
-    onSelect: () -> Unit
+    isHindi: Boolean,
+    onSelect: () -> Unit,
+    language: Language = if (isHindi) Language.HINDI else Language.ENGLISH
 ) {
+    val strings = language.appStrings()
     Card(
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected) Color(0xFFFEF3C7) else Color.White
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 4.dp else 1.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 3.dp else 1.dp),
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onSelect() },
-        shape = RoundedCornerShape(12.dp)
+        shape = RoundedCornerShape(14.dp)
     ) {
         Row(
             modifier = Modifier
@@ -308,26 +327,22 @@ fun ProfileCard(
         ) {
             Column {
                 Text(
-                    text = profile.name + if (isSelected) " (सक्रिय)" else "",
+                    text = profile.name + if (isSelected) " (${strings.t("Active", "सक्रिय", "Active")})" else "",
                     fontWeight = FontWeight.Bold,
-                    fontSize = 16.sp
+                    fontSize = 15.sp,
+                    color = Color.Black
                 )
                 Text(
                     text = "${profile.grade} | ${profile.preferredLanguage.displayName}",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
-                Text(
-                    text = "⚡ XP: ${profile.totalXp} | 🔥 Streak: ${profile.streakDays} Days",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = Color.DarkGray
-                )
             }
 
             RadioButton(
                 selected = isSelected,
-                onClick = onSelect
+                onClick = onSelect,
+                colors = RadioButtonDefaults.colors(selectedColor = SaffronPrimary)
             )
         }
     }

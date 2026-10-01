@@ -10,10 +10,19 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.data.model.LearningZone
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 
 /** One tappable "world" zone shown in the horizontal Explore row. */
 @Composable
-fun LearningZoneCard(zone: LearningZone, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun LearningZoneCard(
+    zone: LearningZone,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    appLanguage: Language = Language.ENGLISH,
+    nameLabel: String = zone.name
+) {
+    val strings = appLanguage.appStrings()
     Card(
         onClick = onClick,
         modifier = modifier.width(168.dp),
@@ -23,8 +32,8 @@ fun LearningZoneCard(zone: LearningZone, onClick: () -> Unit, modifier: Modifier
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             Text(zone.emoji, fontSize = 40.sp, modifier = Modifier.clearAndSetSemantics { })
-            Text(zone.name, style = MaterialTheme.typography.titleMedium)
-            Text("${zone.progressPercent}% Complete", style = MaterialTheme.typography.bodyMedium,
+            Text(nameLabel, style = MaterialTheme.typography.titleMedium)
+            Text(strings.complete(zone.progressPercent), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
             LinearProgressIndicator(
                 progress = { zone.progressPercent / 100f },

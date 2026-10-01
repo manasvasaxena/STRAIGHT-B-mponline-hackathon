@@ -9,10 +9,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 
 /** Temporary screen for tabs that are not built yet. */
 @Composable
-fun PlaceholderScreen(title: String, emoji: String, modifier: Modifier = Modifier) {
+fun PlaceholderScreen(
+    title: String,
+    emoji: String,
+    modifier: Modifier = Modifier,
+    appLanguage: Language = Language.ENGLISH
+) {
+    val strings = appLanguage.appStrings()
     Column(
         modifier = modifier.fillMaxSize().padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -21,7 +29,7 @@ fun PlaceholderScreen(title: String, emoji: String, modifier: Modifier = Modifie
         Text(emoji, fontSize = 64.sp)
         Spacer(Modifier.height(12.dp))
         Text(title, style = MaterialTheme.typography.headlineMedium, textAlign = TextAlign.Center)
-        Text("Coming soon", style = MaterialTheme.typography.bodyLarge,
+        Text(strings.t("Coming soon", "जल्द उपलब्ध होगा", "Coming soon"), style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

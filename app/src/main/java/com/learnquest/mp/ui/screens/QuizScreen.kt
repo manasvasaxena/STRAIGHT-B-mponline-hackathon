@@ -12,7 +12,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.model.MasteryState
+import com.learnquest.mp.model.Language
 import com.learnquest.mp.model.QuizQuestion
+import com.learnquest.mp.ui.appStrings
 import com.learnquest.mp.ui.theme.ForestGreen
 import com.learnquest.mp.ui.theme.SaffronPrimary
 import com.learnquest.mp.ui.theme.WeakRed
@@ -23,8 +25,10 @@ import com.learnquest.mp.ui.theme.WeakRed
 @Composable
 fun QuizScreen(
     questions: List<QuizQuestion>,
-    onQuizComplete: (scorePercentage: Int, masteryState: MasteryState) -> Unit
+    onQuizComplete: (scorePercentage: Int, masteryState: MasteryState) -> Unit,
+    appLanguage: Language = Language.ENGLISH
 ) {
+    val strings = appLanguage.appStrings()
     var currentIndex by remember { mutableStateOf(0) }
     var selectedOption by remember { mutableStateOf<Int?>(null) }
     var correctAnswersCount by remember { mutableStateOf(0) }
@@ -39,7 +43,7 @@ fun QuizScreen(
             .padding(16.dp)
     ) {
         Text(
-            text = "अनुकूली क्विज़ / Adaptive Quiz",
+            text = strings.t("Adaptive Quiz", "अनुकूली क्विज़", "Adaptive Quiz"),
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold
         )
@@ -49,7 +53,7 @@ fun QuizScreen(
         if (!isQuizSubmitted && currentQuestion != null) {
             // Question Progress
             Text(
-                text = "प्रश्न ${currentIndex + 1} / ${questions.size}",
+                text = strings.t("Question ${currentIndex + 1} / ${questions.size}", "प्रश्न ${currentIndex + 1} / ${questions.size}", "Question ${currentIndex + 1} / ${questions.size}"),
                 fontSize = 14.sp,
                 color = Color.Gray
             )
@@ -122,12 +126,14 @@ fun QuizScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = SaffronPrimary)
             ) {
-                Text(if (currentIndex < questions.size - 1) "अगला प्रश्न (Next)" else "सबमिट करें (Submit)")
+                Text(if (currentIndex < questions.size - 1) strings.t("Next question", "अगला प्रश्न", "Next question") else strings.t("Submit", "सबमिट करें", "Submit करें"))
             }
 
         } else if (isQuizSubmitted) {
             // Result & Adaptive Action Summary
             val percentage = (correctAnswersCount.toDouble() / questions.size * 100).toInt()
+            val masteryText = resultMastery?.let { strings.mastery(it) }.orEmpty()
+            val masteryAction = resultMastery?.let { strings.masteryAction(it) }.orEmpty()
 
             Card(
                 modifier = Modifier.fillMaxWidth(),
@@ -139,7 +145,7 @@ fun QuizScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "परिणाम / Quiz Score",
+                        text = strings.t("Quiz Score", "क्विज़ स्कोर", "Quiz Score"),
                         fontSize = 18.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -157,12 +163,12 @@ fun QuizScreen(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "Mastery State: ${resultMastery?.label}",
+                        text = strings.t("Mastery: $masteryText", "पकड़: $masteryText", "Mastery: $masteryText"),
                         fontWeight = FontWeight.Bold,
                         fontSize = 16.sp
                     )
                     Text(
-                        text = "Action: ${resultMastery?.threshold}",
+                        text = strings.t("Action: $masteryAction", "कार्य: $masteryAction", "Action: $masteryAction"),
                         color = Color.DarkGray,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(top = 4.dp)
@@ -178,7 +184,7 @@ fun QuizScreen(
                         },
                         colors = ButtonDefaults.buttonColors(containerColor = ForestGreen)
                     ) {
-                        Text("पुनः प्रयास करें / Repeat Practice")
+                        Text(strings.t("Repeat Practice", "पुनः प्रयास करें", "Repeat Practice"))
                     }
                 }
             }

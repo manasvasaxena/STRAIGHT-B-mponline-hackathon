@@ -8,14 +8,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.learnquest.mp.data.model.DailyChallenge
+import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 
 /** Teaser card for the daily challenge (the question itself is shown later). */
 @Composable
 fun DailyChallengeCard(
     challenge: DailyChallenge,
     onStart: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    appLanguage: Language = Language.ENGLISH
 ) {
+    val strings = appLanguage.appStrings()
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
@@ -30,7 +34,7 @@ fun DailyChallengeCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("🧩 Daily Challenge", style = MaterialTheme.typography.titleLarge,
+                Text(strings.t("🧩 Daily Challenge", "🧩 दैनिक चुनौती", "🧩 Daily Challenge"), style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier.weight(1f))
                 Surface(
                     shape = RoundedCornerShape(50),
@@ -42,7 +46,7 @@ fun DailyChallengeCard(
                         style = MaterialTheme.typography.labelLarge)
                 }
             }
-            Text("Today's challenge is waiting!", style = MaterialTheme.typography.bodyLarge)
+            Text(strings.t("Today's challenge is waiting!", "आज की चुनौती आपका इंतज़ार कर रही है!", "Today's challenge ready hai!"), style = MaterialTheme.typography.bodyLarge)
             Button(
                 onClick = onStart,
                 modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp),
@@ -50,7 +54,7 @@ fun DailyChallengeCard(
                     containerColor = MaterialTheme.colorScheme.tertiary,
                     contentColor = MaterialTheme.colorScheme.onTertiary
                 )
-            ) { Text("Start Challenge", style = MaterialTheme.typography.titleMedium) }
+            ) { Text(strings.t("Start Challenge", "चुनौती शुरू करें", "Challenge Start करें"), style = MaterialTheme.typography.titleMedium) }
         }
     }
 }
