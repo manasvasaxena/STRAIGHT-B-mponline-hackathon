@@ -164,78 +164,35 @@ fun DownloadsScreen(
     var refreshKey by remember { mutableStateOf(0) }
 
     var fileToDelete by remember { mutableStateOf<DownloadedFileItem?>(null) }
-    var hiddenBundleFiles by remember { mutableStateOf(setOf<String>()) }
-
-    val defaultClass6Content = """
-        # Class 6 Maths - Lesson 1
-        ## Knowing Our Numbers
-
-        ### 1. Numbers and Place Value
-        A number is made up of digits. The place value of a digit depends on its position.
-
-        Example: 5,43,216
-        - 5 Lakhs (5,00,000)
-        - 4 Ten Thousands (40,000)
-        - 3 Thousands (3,000)
-        - 2 Hundreds (200)
-        - 1 Tens (10)
-        - 6 Ones (6)
-
-        ### 2. Face Value
-        The face value of a digit is the digit itself.
-        Example: In 72,456, the face value of 2 is 2.
-
-        ### 3. Indian Place Value System
-        Ones -> Tens -> Hundreds -> Thousands -> Ten Thousands -> Lakhs -> Ten Lakhs -> Crores
-
-        Example: 12,34,567
-        Twelve lakh thirty-four thousand five hundred sixty-seven.
-
-        ### 4. Comparing Numbers
-        45,678 > 9,876
-        56,432 > 54,321
-
-        ### 5. Ascending and Descending Order
-        Ascending: 12, 25, 37, 48, 63
-        Descending: 63, 48, 37, 25, 12
-
-        ### 6. Rounding Off Numbers
-        47 -> 50, 43 -> 40
-        346 -> 300, 378 -> 400
-    """.trimIndent()
 
     val downloadedFiles = remember(refreshKey) {
         val list = mutableListOf<DownloadedFileItem>()
         try {
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            if (downloadsDir.exists() && downloadsDir.isDirectory) {
-                downloadsDir.listFiles()?.filter { it.extension.lowercase() in listOf("md", "txt") }?.forEach { f ->
-                    val kb = f.length() / 1024.0
-                    val sizeStr = if (kb < 1024) String.format("%.1f KB", kb) else String.format("%.2f MB", kb / 1024.0)
-                    list.add(
-                        DownloadedFileItem(
-                            file = f,
-                            name = f.name,
-                            sizeText = sizeStr,
-                            lastModifiedText = "Downloaded"
-                        )
-                    )
+            val directories = listOfNotNull(
+                context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+                File(context.filesDir, "downloads"),
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+            ).distinctBy { it.absolutePath }
+            directories.forEach { downloadsDir ->
+                if (downloadsDir.exists() && downloadsDir.isDirectory) {
+                    downloadsDir.listFiles()
+                        ?.filter { it.extension.lowercase() in listOf("md", "txt") }
+                        ?.forEach { f ->
+                            val kb = f.length() / 1024.0
+                            val sizeStr = if (kb < 1024) String.format("%.1f KB", kb) else String.format("%.2f MB", kb / 1024.0)
+                            list.add(
+                                DownloadedFileItem(
+                                    file = f,
+                                    name = f.name,
+                                    sizeText = sizeStr,
+                                    lastModifiedText = "Downloaded"
+                                )
+                            )
+                        }
                 }
             }
         } catch (_: Exception) { }
-
-        if (!hiddenBundleFiles.contains("Class_6_Maths_Lesson_1_Notes.md") && list.none { it.name == "Class_6_Maths_Lesson_1_Notes.md" }) {
-            list.add(
-                0,
-                DownloadedFileItem(
-                    file = File("Class_6_Maths_Lesson_1_Notes.md"),
-                    name = "Class_6_Maths_Lesson_1_Notes.md",
-                    sizeText = "1.8 KB",
-                    lastModifiedText = "Offline Bundle"
-                )
-            )
-        }
-        list
+        list.distinctBy { it.file.absolutePath }
     }
 
     if (selectedFileItem == null) {
@@ -288,9 +245,9 @@ fun DownloadsScreen(
                                     .clickable {
                                         selectedFileItem = item
                                         noteContent = try {
-                                            if (item.file.exists()) item.file.readText() else defaultClass6Content
+                                            if (item.file.exists()) item.file.readText() else ""
                                         } catch (_: Exception) {
-                                            defaultClass6Content
+                                            ""
                                         }
                                     }
                             ) {
@@ -371,7 +328,6 @@ fun DownloadsScreen(
                             if (target.file.exists()) {
                                 target.file.delete()
                             }
-                            hiddenBundleFiles = hiddenBundleFiles + target.name
                             refreshKey++
                             Toast.makeText(
                                 context,

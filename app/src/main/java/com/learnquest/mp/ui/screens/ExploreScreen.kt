@@ -16,15 +16,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import android.content.ContentValues
-import android.content.Context
-import android.os.Build
+import androidx.activity.compose.BackHandler
+import android.speech.tts.TextToSpeech
 import android.os.Environment
-import android.provider.MediaStore
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import com.learnquest.mp.data.repository.PkgsRepository
+import com.learnquest.mp.data.repository.RemotePackageFile
 import java.io.File
-import java.io.FileOutputStream
+import java.util.Locale
+import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -69,51 +70,72 @@ fun ExploreScreen(
     var selectedBoard by remember { mutableStateOf(EducationBoard.MP_BOARD) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedGrade by remember { mutableStateOf("Class 6") }
-    var selectedSubjectNotes by remember { mutableStateOf<String?>(null) }
+    var selectedSubject by remember { mutableStateOf<String?>(null) }
     var showNoteDialog by remember { mutableStateOf(false) }
-    var noteContent by remember { mutableStateOf("") }
+    var remotePackages by remember { mutableStateOf<List<RemotePackageFile>>(emptyList()) }
+    var isLoadingPackages by remember { mutableStateOf(false) }
+    var packageError by remember { mutableStateOf<String?>(null) }
+    var downloadingPackageName by remember { mutableStateOf<String?>(null) }
+    var downloadedFilesVersion by remember { mutableStateOf(0) }
+    var selectedDownloadedFile by remember { mutableStateOf<File?>(null) }
+    var isTtsSpeaking by remember { mutableStateOf(false) }
+    var ttsEngine by remember { mutableStateOf<TextToSpeech?>(null) }
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val pkgsRepository = remember(context) { PkgsRepository(context) }
+
+    DisposableEffect(context) {
+        var tts: TextToSpeech? = null
+        tts = TextToSpeech(context) { status ->
+            if (status == TextToSpeech.SUCCESS) {
+                ttsEngine = tts
+            }
+        }
+        onDispose {
+            tts?.stop()
+            tts?.shutdown()
+        }
+    }
 
     val isHindi = appLanguage == Language.HINDI
 
-    val class6MathsMdUrl = "https://raw.githubusercontent.com/manasvasaxena/STRAIGHT-B-mponline-hackathon/main/PKGS/Class_6_Maths_Lesson_1_Notes.md"
-    val localClass6Notes = """
-        # Class 6 Maths - Lesson 1
-        ## Knowing Our Numbers
+    fun refreshPackages() {
+        if (isOffline || isLoadingPackages) return
+        scope.launch {
+            isLoadingPackages = true
+            packageError = null
+            pkgsRepository.listPackageFiles()
+                .onSuccess { remotePackages = it }
+                .onFailure { packageError = it.localizedMessage ?: "Unable to load study files" }
+            isLoadingPackages = false
+        }
+    }
 
-        ### 1. Numbers and Place Value
-        A number is made up of digits. The place value of a digit depends on its position.
+    fun openPackageBrowser(subject: String) {
+        selectedSubject = subject
+        showNoteDialog = true
+        refreshPackages()
+    }
 
-        Example: 5,43,216
-        - 5 Lakhs (5,00,000)
-        - 4 Ten Thousands (40,000)
-        - 3 Thousands (3,000)
-        - 2 Hundreds (200)
-        - 1 Tens (10)
-        - 6 Ones (6)
+    LaunchedEffect(isOffline) {
+        if (!isOffline) refreshPackages()
+    }
 
-        ### 2. Face Value
-        The face value of a digit is the digit itself.
-        Example: In 72,456, the face value of 2 is 2.
+    val locallyDownloadedPackages = remember(downloadedFilesVersion) {
+        listLocalPackageFiles(context)
+    }
 
-        ### 3. Indian Place Value System
-        Ones -> Tens -> Hundreds -> Thousands -> Ten Thousands -> Lakhs -> Ten Lakhs -> Crores
-
-        Example: 12,34,567
-        Twelve lakh thirty-four thousand five hundred sixty-seven.
-
-        ### 4. Comparing Numbers
-        45,678 > 9,876
-        56,432 > 54,321
-
-        ### 5. Ascending and Descending Order
-        Ascending: 12, 25, 37, 48, 63
-        Descending: 63, 48, 37, 25, 12
-
-        ### 6. Rounding Off Numbers
-        47 -> 50, 43 -> 40
-        346 -> 300, 378 -> 400
-    """.trimIndent()
+    if (selectedDownloadedFile != null) {
+        val file = selectedDownloadedFile!!
+        BackHandler { selectedDownloadedFile = null }
+        MarkdownReaderScreen(
+            title = file.name,
+            markdown = runCatching { file.readText() }.getOrDefault(""),
+            isHindi = isHindi,
+            onBack = { selectedDownloadedFile = null }
+        )
+        return
+    }
 
     val grades = listOf("Class 6", "Class 7", "Class 8", "Class 9", "Class 10", "Class 11", "Class 12")
 
@@ -176,6 +198,72 @@ fun ExploreScreen(
                 modifier = Modifier.fillMaxWidth(),
                 singleLine = true
             )
+        }
+
+        item {
+            Card(
+                colors = CardDefaults.cardColors(containerColor = if (isTtsSpeaking) Color(0xFFFEF3C7) else Color(0xFFF0FDF4)),
+                border = CardDefaults.outlinedCardBorder().copy(
+                    brush = androidx.compose.ui.graphics.SolidColor(if (isTtsSpeaking) Color(0xFFF59E0B) else Color(0xFF86EFAC))
+                ),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = if (isTtsSpeaking) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
+                        contentDescription = "TTS Toggle",
+                        tint = if (isTtsSpeaking) Color(0xFFD97706) else Color(0xFF16A34A),
+                        modifier = Modifier.size(28.dp)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = if (isHindi) "🔊 पाठ से वाक् (Text-to-Speech)" else "🔊 Text-to-Speech Engine",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp,
+                            color = Color.Black
+                        )
+                        Text(
+                            text = if (isTtsSpeaking) {
+                                if (isHindi) "TTS सक्रिय है - विषय सामग्री पढ़ी जा रही है..." else "TTS Active - Reading subject content aloud..."
+                            } else {
+                                if (isHindi) "विषयों एवं पाठ्यसामग्री को सुनने के लिए चालू करें" else "Toggle on to hear chapter and subject content read aloud"
+                            },
+                            fontSize = 11.sp,
+                            color = Color.DarkGray
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(
+                        checked = isTtsSpeaking,
+                        onCheckedChange = { checked ->
+                            isTtsSpeaking = checked
+                            if (checked) {
+                                val textToRead = if (isHindi) {
+                                    "एक्सप्लोर सेक्शन में आपका स्वागत है। वर्तमान में ${selectedGrade} चयनित है। गणित, विज्ञान, सामाजिक विज्ञान, हिन्दी, अंग्रेजी और संस्कृत पाठ उपलब्ध हैं।"
+                                } else {
+                                    "Welcome to Explore. Currently selected ${selectedGrade}. Mathematics, Science, Social Science, Hindi, English, and Sanskrit chapters are available."
+                                }
+                                val locale = if (isHindi) Locale("hi", "IN") else Locale.US
+                                ttsEngine?.language = locale
+                                ttsEngine?.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, "EXPLORE_TTS_ID")
+                            } else {
+                                ttsEngine?.stop()
+                            }
+                        },
+                        colors = SwitchDefaults.colors(
+                            checkedThumbColor = Color.White,
+                            checkedTrackColor = SaffronPrimary
+                        )
+                    )
+                }
+            }
         }
 
         item {
@@ -280,11 +368,7 @@ fun ExploreScreen(
                             isHindi = isHindi,
                             onClick = {
                                 val title = if (isHindi) subject.titleHindi else subject.titleEnglish
-                                if (selectedGrade == "Class 6" && (title == "Mathematics" || title == "गणित")) {
-                                    selectedSubjectNotes = "Class_6_Maths_Lesson_1_Notes.md"
-                                    noteContent = localClass6Notes
-                                    showNoteDialog = true
-                                }
+                                openPackageBrowser(subject.titleEnglish)
                                 onCategoryClick(title)
                             }
                         )
@@ -306,7 +390,10 @@ fun ExploreScreen(
                         SubjectCard(
                             subject = subject,
                             isHindi = isHindi,
-                            onClick = { onCategoryClick(if (isHindi) subject.titleHindi else subject.titleEnglish) }
+                            onClick = {
+                                openPackageBrowser(subject.titleEnglish)
+                                onCategoryClick(if (isHindi) subject.titleHindi else subject.titleEnglish)
+                            }
                         )
                     }
                 }
@@ -331,11 +418,17 @@ fun ExploreScreen(
     }
 
     if (showNoteDialog) {
+        val availablePackages = (remotePackages + locallyDownloadedPackages).distinctBy { it.name }
+        val matchingPackages = availablePackages.filter {
+            packageMatchesSelection(it.name, selectedGrade, selectedSubject.orEmpty())
+        }
         AlertDialog(
             onDismissRequest = { showNoteDialog = false },
             title = {
                 Text(
-                    text = if (isHindi) "उपलब्ध पाठ सामग्री" else "Available Study Material",
+                    text = selectedSubject?.let { subject ->
+                        if (isHindi) "$subject की पाठ सामग्री" else "$subject study material"
+                    } ?: if (isHindi) "उपलब्ध पाठ सामग्री" else "Available Study Material",
                     fontWeight = FontWeight.Bold
                 )
             },
@@ -344,40 +437,136 @@ fun ExploreScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = if (isHindi) "नोट्स फ़ाइल का नाम:" else "Notes File Name:",
+                        text = if (isHindi) "$selectedGrade के GitHub PKGS से फ़ाइलें:" else "Files from the GitHub PKGS folder for $selectedGrade:",
                         fontSize = 12.sp,
                         color = Color.Gray,
                         fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
-                    Card(
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(14.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                    if (isLoadingPackages) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(if (isHindi) "GitHub से फ़ाइलें लोड हो रही हैं..." else "Loading files from GitHub...")
+                        }
+                    } else if (matchingPackages.isEmpty()) {
+                        Text(
+                            text = packageError
+                                ?: if (isOffline) {
+                                    if (isHindi) "ऑफ़लाइन हैं। पहले से डाउनलोड की गई फ़ाइलें Downloads में उपलब्ध हैं।" else "You are offline. Previously downloaded files are available in Downloads."
+                                } else {
+                                    if (isHindi) "इस कक्षा और विषय के लिए GitHub पर कोई फ़ाइल नहीं मिली।" else "No matching files were found in GitHub for this class and subject."
+                                },
+                            fontSize = 13.sp,
+                            color = if (packageError != null) Color(0xFFDC2626) else Color.Gray
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.heightIn(max = 300.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Description,
-                                contentDescription = null,
-                                tint = SaffronPrimary,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = selectedSubjectNotes ?: "Class_6_Maths_Lesson_1_Notes.md",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 14.sp
-                            )
+                            items(matchingPackages, key = { it.name }) { packageFile ->
+                                val downloadedFile = findLocalPackageFile(context, packageFile.name)
+                                Card(
+                                    colors = CardDefaults.cardColors(containerColor = Color(0xFFF1F5F9)),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(10.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Description,
+                                            contentDescription = null,
+                                            tint = SaffronPrimary,
+                                            modifier = Modifier.size(26.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                         Column(modifier = Modifier.weight(1f)) {
+                                            Text(packageFile.name, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                            Text(
+                                                packageSizeText(packageFile.sizeBytes),
+                                                fontSize = 11.sp,
+                                                color = Color.Gray
+                                            )
+                                         }
+                                        if (downloadedFile != null) {
+                                            TextButton(
+                                                onClick = {
+                                                    showNoteDialog = false
+                                                    selectedDownloadedFile = downloadedFile
+                                                }
+                                            ) {
+                                                Text(if (isHindi) "देखें" else "View", fontSize = 12.sp)
+                                            }
+                                        }
+                                        IconButton(
+                                            onClick = {
+                                                val locale = when {
+                                                    packageFile.name.lowercase().contains("hindi") -> Locale("hi", "IN")
+                                                    packageFile.name.lowercase().contains("sanskrit") -> Locale("hi", "IN")
+                                                    else -> Locale.US
+                                                }
+                                                ttsEngine?.language = locale
+                                                val textToSpeak = "Reading file ${packageFile.name}"
+                                                ttsEngine?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "FILE_TTS_ID")
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.VolumeUp,
+                                                contentDescription = "Read Aloud",
+                                                tint = SaffronPrimary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
+                                        if (packageFile.downloadUrl.isNotBlank()) {
+                                            TextButton(
+                                                enabled = !isOffline && downloadingPackageName == null,
+                                                onClick = {
+                                                    scope.launch {
+                                                        downloadingPackageName = packageFile.name
+                                                        pkgsRepository.downloadPackage(packageFile)
+                                                            .onSuccess {
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    if (isHindi) "${packageFile.name} डाउनलोड हो गई" else "Downloaded ${packageFile.name}",
+                                                                    Toast.LENGTH_LONG
+                                                                ).show()
+                                                                showNoteDialog = false
+                                                                downloadedFilesVersion++
+                                                            }
+                                                            .onFailure {
+                                                                Toast.makeText(
+                                                                    context,
+                                                                    "Download failed: ${it.localizedMessage ?: "network error"}",
+                                                                    Toast.LENGTH_LONG
+                                                                ).show()
+                                                            }
+                                                        downloadingPackageName = null
+                                                    }
+                                                }
+                                            ) {
+                                                Text(
+                                                    if (downloadingPackageName == packageFile.name) {
+                                                        if (isHindi) "हो रहा है…" else "Saving…"
+                                                    } else {
+                                                        if (isHindi) "डाउनलोड" else "Download"
+                                                    },
+                                                    fontSize = 12.sp
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                     if (isOffline) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = if (isHindi) "⚠️ डाउनलोड केवल इंटरनेट उपलब्ध होने पर काम करेगा।" else "⚠️ Downloading requires active internet connection.",
+                            text = if (isHindi) "⚠️ डाउनलोड के लिए इंटरनेट कनेक्शन आवश्यक है।" else "⚠️ Downloads require an active internet connection.",
                             fontSize = 12.sp,
                             color = Color(0xFFDC2626)
                         )
@@ -385,29 +574,8 @@ fun ExploreScreen(
                 }
             },
             confirmButton = {
-                Button(
-                    onClick = {
-                        if (isOffline) {
-                            Toast.makeText(
-                                context,
-                                if (isHindi) "इंटरनेट कनेक्शन नहीं है! डाउनलोड करने के लिए ऑनलाइन आएं।" else "No internet connection! Go online to download.",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        } else {
-                            downloadMarkdownNote(
-                                context = context,
-                                filename = "Class_6_Maths_Lesson_1_Notes.md",
-                                content = noteContent
-                            )
-                        }
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isOffline) Color.Gray else SaffronPrimary
-                    )
-                ) {
-                    Icon(Icons.Default.Download, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(if (isHindi) "डाउनलोड .md" else "Download .md")
+                TextButton(onClick = { refreshPackages() }, enabled = !isOffline && !isLoadingPackages) {
+                    Text(if (isHindi) "पुनः लोड करें" else "Refresh")
                 }
             },
             dismissButton = {
@@ -419,33 +587,53 @@ fun ExploreScreen(
     }
 }
 
-fun downloadMarkdownNote(context: Context, filename: String, content: String) {
-    try {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val resolver = context.contentResolver
-            val contentValues = ContentValues().apply {
-                put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                put(MediaStore.MediaColumns.MIME_TYPE, "text/markdown")
-                put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS)
-            }
-            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, contentValues)
-            if (uri != null) {
-                resolver.openOutputStream(uri)?.use { os ->
-                    os.write(content.toByteArray())
-                }
-                Toast.makeText(context, "Downloaded $filename to Downloads folder!", Toast.LENGTH_LONG).show()
-            }
-        } else {
-            val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-            val file = File(downloadsDir, filename)
-            FileOutputStream(file).use { os ->
-                os.write(content.toByteArray())
-            }
-            Toast.makeText(context, "Saved $filename to Downloads!", Toast.LENGTH_LONG).show()
+private fun packageDirectories(context: android.content.Context): List<File> = listOfNotNull(
+    context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+    File(context.filesDir, "downloads"),
+    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+).distinctBy { it.absolutePath }
+
+private fun listLocalPackageFiles(context: android.content.Context): List<RemotePackageFile> =
+    packageDirectories(context)
+        .flatMap { directory ->
+            directory.listFiles()
+                ?.filter { it.isFile && it.extension.lowercase() in listOf("md", "txt") }
+                .orEmpty()
         }
-    } catch (e: Exception) {
-        Toast.makeText(context, "Failed to download note: ${e.localizedMessage}", Toast.LENGTH_SHORT).show()
+        .map { file -> RemotePackageFile(file.name, "", file.length()) }
+        .distinctBy { it.name }
+
+private fun findLocalPackageFile(context: android.content.Context, name: String): File? {
+    val safeName = name.substringAfterLast('/')
+    return packageDirectories(context)
+        .asSequence()
+        .map { File(it, safeName) }
+        .firstOrNull { it.isFile }
+}
+
+private fun packageMatchesSelection(name: String, grade: String, subject: String): Boolean {
+    val lowerName = name.lowercase()
+    val gradeNumber = Regex("(?:class|cls)[ _-]*(\\d+)").find(lowerName)?.groupValues?.get(1)
+    if (gradeNumber != null && gradeNumber != grade.filter(Char::isDigit)) return false
+
+    val subjectTokens = when (subject.lowercase()) {
+        "mathematics" -> listOf("math", "maths")
+        "science" -> listOf("science")
+        "social science" -> listOf("social", "history", "civics", "geography", "sst")
+        "environmental studies" -> listOf("evs", "environment")
+        "hindi" -> listOf("hindi")
+        "english" -> listOf("english")
+        "sanskrit" -> listOf("sanskrit")
+        else -> listOf(subject.lowercase())
     }
+    return subjectTokens.any { token -> lowerName.contains(token) }
+}
+
+private fun packageSizeText(sizeBytes: Long): String = when {
+    sizeBytes <= 0L -> "Study notes"
+    sizeBytes < 1024L -> "$sizeBytes B"
+    sizeBytes < 1024L * 1024L -> "${sizeBytes / 1024.0} KB"
+    else -> "${sizeBytes / (1024.0 * 1024.0)} MB"
 }
 
 @Composable
