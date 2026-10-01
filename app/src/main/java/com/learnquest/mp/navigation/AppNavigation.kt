@@ -157,6 +157,7 @@ fun AppNavigation(
                             "progress" -> goToTab(Screen.Progress)
                             "profile" -> goToTab(Screen.Profile)
                             "doubt_solver" -> navController.navigate("doubt_solver")
+                            "quiz_battle" -> navController.navigate("quiz_battle")
                             "downloads" -> navController.navigate("downloads")
                             "sync_queue" -> navController.navigate("sync_queue")
                             else -> showMessage(route)
@@ -168,6 +169,14 @@ fun AppNavigation(
                 DownloadsScreen(
                     appLanguage = appLanguage,
                     onBack = { navController.popBackStack() }
+                )
+            }
+            composable("quiz_battle") {
+                QuizBattleScreen(
+                    repository = repository,
+                    appLanguage = appLanguage,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToLearn = { goToTab(Screen.Learn) }
                 )
             }
             composable("doubt_solver") {
@@ -216,7 +225,13 @@ fun AppNavigation(
                         )
                         showMessage(appLanguage.appStrings().t("Quiz completed! Mastery: ${appLanguage.appStrings().mastery(mastery)}", "क्विज़ पूरी! स्तर: ${appLanguage.appStrings().mastery(mastery)}", "Quiz complete! Mastery: ${appLanguage.appStrings().mastery(mastery)}"))
                     },
-                    onMessage = showMessage
+                    onMessage = { msg ->
+                        if (msg == "NAVIGATE_QUIZ_BATTLE") {
+                            navController.navigate("quiz_battle")
+                        } else {
+                            showMessage(msg)
+                        }
+                    }
                 )
             }
             composable(Screen.Progress.route) {

@@ -17,14 +17,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.activity.compose.BackHandler
-import android.speech.tts.TextToSpeech
 import android.os.Environment
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import com.learnquest.mp.data.repository.PkgsRepository
 import com.learnquest.mp.data.repository.RemotePackageFile
 import java.io.File
-import java.util.Locale
 import kotlinx.coroutines.launch
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -33,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.learnquest.mp.model.Language
+import com.learnquest.mp.ui.appStrings
 import com.learnquest.mp.ui.theme.SaffronPrimary
 
 enum class EducationBoard(val displayNameHindi: String, val displayNameEnglish: String, val badgeHindi: String, val badgeEnglish: String) {
@@ -78,26 +77,13 @@ fun ExploreScreen(
     var downloadingPackageName by remember { mutableStateOf<String?>(null) }
     var downloadedFilesVersion by remember { mutableStateOf(0) }
     var selectedDownloadedFile by remember { mutableStateOf<File?>(null) }
-    var isTtsSpeaking by remember { mutableStateOf(false) }
-    var ttsEngine by remember { mutableStateOf<TextToSpeech?>(null) }
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val pkgsRepository = remember(context) { PkgsRepository(context) }
 
-    DisposableEffect(context) {
-        var tts: TextToSpeech? = null
-        tts = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                ttsEngine = tts
-            }
-        }
-        onDispose {
-            tts?.stop()
-            tts?.shutdown()
-        }
-    }
-
+    val strings = appLanguage.appStrings()
     val isHindi = appLanguage == Language.HINDI
+    fun localized(hindi: String, english: String): String = strings.t(english, hindi, "$english / $hindi")
 
     fun refreshPackages() {
         if (isOffline || isLoadingPackages) return
@@ -106,7 +92,7 @@ fun ExploreScreen(
             packageError = null
             pkgsRepository.listPackageFiles()
                 .onSuccess { remotePackages = it }
-                .onFailure { packageError = it.localizedMessage ?: "Unable to load study files" }
+                .onFailure { packageError = it.localizedMessage ?: strings.t("Unable to load study files", "स्टडी फ़ाइलें लोड नहीं हो सकीं", "Study files load nahi ho paayi") }
             isLoadingPackages = false
         }
     }
@@ -132,7 +118,8 @@ fun ExploreScreen(
             title = file.name,
             markdown = runCatching { file.readText() }.getOrDefault(""),
             isHindi = isHindi,
-            onBack = { selectedDownloadedFile = null }
+            onBack = { selectedDownloadedFile = null },
+            appLanguage = appLanguage
         )
         return
     }
@@ -192,7 +179,7 @@ fun ExploreScreen(
             OutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
-                placeholder = { Text(if (isHindi) "विषय या नोट्स खोजें..." else "Search subjects, topics, notes...") },
+                placeholder = { Text(localized("विषय या नोट्स खोजें...", "Search subjects, topics, notes...")) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 shape = RoundedCornerShape(12.dp),
                 modifier = Modifier.fillMaxWidth(),
@@ -201,75 +188,9 @@ fun ExploreScreen(
         }
 
         item {
-            Card(
-                colors = CardDefaults.cardColors(containerColor = if (isTtsSpeaking) Color(0xFFFEF3C7) else Color(0xFFF0FDF4)),
-                border = CardDefaults.outlinedCardBorder().copy(
-                    brush = androidx.compose.ui.graphics.SolidColor(if (isTtsSpeaking) Color(0xFFF59E0B) else Color(0xFF86EFAC))
-                ),
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = if (isTtsSpeaking) Icons.Default.VolumeUp else Icons.Default.VolumeOff,
-                        contentDescription = "TTS Toggle",
-                        tint = if (isTtsSpeaking) Color(0xFFD97706) else Color(0xFF16A34A),
-                        modifier = Modifier.size(28.dp)
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = if (isHindi) "🔊 पाठ से वाक् (Text-to-Speech)" else "🔊 Text-to-Speech Engine",
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp,
-                            color = Color.Black
-                        )
-                        Text(
-                            text = if (isTtsSpeaking) {
-                                if (isHindi) "TTS सक्रिय है - विषय सामग्री पढ़ी जा रही है..." else "TTS Active - Reading subject content aloud..."
-                            } else {
-                                if (isHindi) "विषयों एवं पाठ्यसामग्री को सुनने के लिए चालू करें" else "Toggle on to hear chapter and subject content read aloud"
-                            },
-                            fontSize = 11.sp,
-                            color = Color.DarkGray
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Switch(
-                        checked = isTtsSpeaking,
-                        onCheckedChange = { checked ->
-                            isTtsSpeaking = checked
-                            if (checked) {
-                                val textToRead = if (isHindi) {
-                                    "एक्सप्लोर सेक्शन में आपका स्वागत है। वर्तमान में ${selectedGrade} चयनित है। गणित, विज्ञान, सामाजिक विज्ञान, हिन्दी, अंग्रेजी और संस्कृत पाठ उपलब्ध हैं।"
-                                } else {
-                                    "Welcome to Explore. Currently selected ${selectedGrade}. Mathematics, Science, Social Science, Hindi, English, and Sanskrit chapters are available."
-                                }
-                                val locale = if (isHindi) Locale("hi", "IN") else Locale.US
-                                ttsEngine?.language = locale
-                                ttsEngine?.speak(textToRead, TextToSpeech.QUEUE_FLUSH, null, "EXPLORE_TTS_ID")
-                            } else {
-                                ttsEngine?.stop()
-                            }
-                        },
-                        colors = SwitchDefaults.colors(
-                            checkedThumbColor = Color.White,
-                            checkedTrackColor = SaffronPrimary
-                        )
-                    )
-                }
-            }
-        }
-
-        item {
             Column {
                 Text(
-                    text = if (isHindi) "1. बोर्ड चुनें" else "1. Select Board",
+                    text = localized("1. बोर्ड चुनें", "1. Select Board"),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -298,14 +219,14 @@ fun ExploreScreen(
                         ) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text(
-                                    text = if (isHindi) board.displayNameHindi else board.displayNameEnglish,
+                                    text = localized(board.displayNameHindi, board.displayNameEnglish),
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 14.sp,
                                     color = if (isSelected) SaffronPrimary else Color.Black
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = if (isHindi) board.badgeHindi else board.badgeEnglish,
+                                    text = localized(board.badgeHindi, board.badgeEnglish),
                                     fontSize = 11.sp,
                                     color = Color.Gray
                                 )
@@ -319,7 +240,7 @@ fun ExploreScreen(
         item {
             Column {
                 Text(
-                    text = if (isHindi) "2. कक्षा चुनें" else "2. Select Class",
+                    text = localized("2. कक्षा चुनें", "2. Select Class"),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -349,12 +270,12 @@ fun ExploreScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = if (isHindi) "📚 मुख्य विषय" else "📚 Core Subjects",
+                        text = localized("📚 मुख्य विषय", "📚 Core Subjects"),
                         fontWeight = FontWeight.Bold,
                         fontSize = 18.sp
                     )
                     Text(
-                        text = if (isHindi) selectedBoard.displayNameHindi else selectedBoard.displayNameEnglish,
+                        text = localized(selectedBoard.displayNameHindi, selectedBoard.displayNameEnglish),
                         fontSize = 12.sp,
                         color = SaffronPrimary,
                         fontWeight = FontWeight.SemiBold
@@ -366,8 +287,9 @@ fun ExploreScreen(
                         SubjectCard(
                             subject = subject,
                             isHindi = isHindi,
+                            language = appLanguage,
                             onClick = {
-                                val title = if (isHindi) subject.titleHindi else subject.titleEnglish
+                                val title = localized(subject.titleHindi, subject.titleEnglish)
                                 openPackageBrowser(subject.titleEnglish)
                                 onCategoryClick(title)
                             }
@@ -380,7 +302,7 @@ fun ExploreScreen(
         item {
             Column {
                 Text(
-                    text = if (isHindi) "🗣️ भाषाएँ" else "🗣️ Languages",
+                    text = localized("🗣️ भाषाएँ", "🗣️ Languages"),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
@@ -390,9 +312,10 @@ fun ExploreScreen(
                         SubjectCard(
                             subject = subject,
                             isHindi = isHindi,
+                            language = appLanguage,
                             onClick = {
                                 openPackageBrowser(subject.titleEnglish)
-                                onCategoryClick(if (isHindi) subject.titleHindi else subject.titleEnglish)
+                                onCategoryClick(localized(subject.titleHindi, subject.titleEnglish))
                             }
                         )
                     }
@@ -403,14 +326,14 @@ fun ExploreScreen(
         item {
             Column {
                 Text(
-                    text = if (isHindi) "🌟 विशेष संसाधन" else "🌟 Special Resources",
+                    text = localized("🌟 विशेष संसाधन", "🌟 Special Resources"),
                     fontWeight = FontWeight.Bold,
                     fontSize = 18.sp
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     mpSpecialBranches.forEach { branch ->
-                        BranchCard(branch = branch, isHindi = isHindi)
+                        BranchCard(branch = branch, isHindi = isHindi, language = appLanguage)
                     }
                 }
             }
@@ -427,8 +350,8 @@ fun ExploreScreen(
             title = {
                 Text(
                     text = selectedSubject?.let { subject ->
-                        if (isHindi) "$subject की पाठ सामग्री" else "$subject study material"
-                    } ?: if (isHindi) "उपलब्ध पाठ सामग्री" else "Available Study Material",
+                        localized("$subject की पाठ सामग्री", "$subject study material")
+                    } ?: localized("उपलब्ध पाठ सामग्री", "Available Study Material"),
                     fontWeight = FontWeight.Bold
                 )
             },
@@ -437,7 +360,7 @@ fun ExploreScreen(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = if (isHindi) "$selectedGrade के GitHub PKGS से फ़ाइलें:" else "Files from the GitHub PKGS folder for $selectedGrade:",
+                        text = localized("$selectedGrade के GitHub PKGS से फ़ाइलें:", "Files from the GitHub PKGS folder for $selectedGrade:"),
                         fontSize = 12.sp,
                         color = Color.Gray,
                         fontWeight = FontWeight.SemiBold
@@ -447,15 +370,15 @@ fun ExploreScreen(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text(if (isHindi) "GitHub से फ़ाइलें लोड हो रही हैं..." else "Loading files from GitHub...")
+                            Text(localized("GitHub से फ़ाइलें लोड हो रही हैं...", "Loading files from GitHub..."))
                         }
                     } else if (matchingPackages.isEmpty()) {
                         Text(
                             text = packageError
                                 ?: if (isOffline) {
-                                    if (isHindi) "ऑफ़लाइन हैं। पहले से डाउनलोड की गई फ़ाइलें Downloads में उपलब्ध हैं।" else "You are offline. Previously downloaded files are available in Downloads."
+                                    localized("ऑफ़लाइन हैं। पहले से डाउनलोड की गई फ़ाइलें Downloads में उपलब्ध हैं।", "You are offline. Previously downloaded files are available in Downloads.")
                                 } else {
-                                    if (isHindi) "इस कक्षा और विषय के लिए GitHub पर कोई फ़ाइल नहीं मिली।" else "No matching files were found in GitHub for this class and subject."
+                                    localized("इस कक्षा और विषय के लिए GitHub पर कोई फ़ाइल नहीं मिली।", "No matching files were found in GitHub for this class and subject.")
                                 },
                             fontSize = 13.sp,
                             color = if (packageError != null) Color(0xFFDC2626) else Color.Gray
@@ -499,27 +422,8 @@ fun ExploreScreen(
                                                     selectedDownloadedFile = downloadedFile
                                                 }
                                             ) {
-                                                Text(if (isHindi) "देखें" else "View", fontSize = 12.sp)
+                                                Text(localized("देखें", "View"), fontSize = 12.sp)
                                             }
-                                        }
-                                        IconButton(
-                                            onClick = {
-                                                val locale = when {
-                                                    packageFile.name.lowercase().contains("hindi") -> Locale("hi", "IN")
-                                                    packageFile.name.lowercase().contains("sanskrit") -> Locale("hi", "IN")
-                                                    else -> Locale.US
-                                                }
-                                                ttsEngine?.language = locale
-                                                val textToSpeak = "Reading file ${packageFile.name}"
-                                                ttsEngine?.speak(textToSpeak, TextToSpeech.QUEUE_FLUSH, null, "FILE_TTS_ID")
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.VolumeUp,
-                                                contentDescription = "Read Aloud",
-                                                tint = SaffronPrimary,
-                                                modifier = Modifier.size(20.dp)
-                                            )
                                         }
                                         if (packageFile.downloadUrl.isNotBlank()) {
                                             TextButton(
@@ -531,7 +435,7 @@ fun ExploreScreen(
                                                             .onSuccess {
                                                                 Toast.makeText(
                                                                     context,
-                                                                    if (isHindi) "${packageFile.name} डाउनलोड हो गई" else "Downloaded ${packageFile.name}",
+                                                                    localized("${packageFile.name} डाउनलोड हो गई", "Downloaded ${packageFile.name}"),
                                                                     Toast.LENGTH_LONG
                                                                 ).show()
                                                                 showNoteDialog = false
@@ -540,7 +444,7 @@ fun ExploreScreen(
                                                             .onFailure {
                                                                 Toast.makeText(
                                                                     context,
-                                                                    "Download failed: ${it.localizedMessage ?: "network error"}",
+                                                    strings.t("Download failed: ${it.localizedMessage ?: "network error"}", "डाउनलोड विफल: ${it.localizedMessage ?: "नेटवर्क त्रुटि"}", "Download failed: ${it.localizedMessage ?: "network error"}"),
                                                                     Toast.LENGTH_LONG
                                                                 ).show()
                                                             }
@@ -550,9 +454,9 @@ fun ExploreScreen(
                                             ) {
                                                 Text(
                                                     if (downloadingPackageName == packageFile.name) {
-                                                        if (isHindi) "हो रहा है…" else "Saving…"
+                                                        localized("हो रहा है…", "Saving…")
                                                     } else {
-                                                        if (isHindi) "डाउनलोड" else "Download"
+                                                        localized("डाउनलोड", "Download")
                                                     },
                                                     fontSize = 12.sp
                                                 )
@@ -566,7 +470,7 @@ fun ExploreScreen(
                     if (isOffline) {
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = if (isHindi) "⚠️ डाउनलोड के लिए इंटरनेट कनेक्शन आवश्यक है।" else "⚠️ Downloads require an active internet connection.",
+                            text = localized("⚠️ डाउनलोड के लिए इंटरनेट कनेक्शन आवश्यक है।", "⚠️ Downloads require an active internet connection."),
                             fontSize = 12.sp,
                             color = Color(0xFFDC2626)
                         )
@@ -575,12 +479,12 @@ fun ExploreScreen(
             },
             confirmButton = {
                 TextButton(onClick = { refreshPackages() }, enabled = !isOffline && !isLoadingPackages) {
-                    Text(if (isHindi) "पुनः लोड करें" else "Refresh")
+                    Text(localized("पुनः लोड करें", "Refresh"))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showNoteDialog = false }) {
-                    Text(if (isHindi) "बंद करें" else "Close")
+                    Text(localized("बंद करें", "Close"))
                 }
             }
         )
@@ -640,8 +544,10 @@ private fun packageSizeText(sizeBytes: Long): String = when {
 fun SubjectCard(
     subject: SubjectCategory,
     isHindi: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    language: Language = if (isHindi) Language.HINDI else Language.ENGLISH
 ) {
+    val strings = language.appStrings()
     Card(
         colors = CardDefaults.cardColors(containerColor = Color.White),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
@@ -673,12 +579,12 @@ fun SubjectCard(
             Spacer(modifier = Modifier.width(14.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (isHindi) subject.titleHindi else subject.titleEnglish,
+                    text = strings.t(subject.titleEnglish, subject.titleHindi, "${subject.titleEnglish} / ${subject.titleHindi}"),
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )
                 Text(
-                    text = "${if (isHindi) subject.tagHindi else subject.tagEnglish} • ${subject.totalLessons} ${if (isHindi) "पाठ" else "Lessons"}",
+                    text = "${strings.t(subject.tagEnglish, subject.tagHindi, "${subject.tagEnglish} / ${subject.tagHindi}")} • ${subject.totalLessons} ${strings.t("Lessons", "पाठ", "Lessons")}",
                     fontSize = 12.sp,
                     color = Color.Gray
                 )
@@ -693,7 +599,8 @@ fun SubjectCard(
 }
 
 @Composable
-fun BranchCard(branch: ResourceBranch, isHindi: Boolean) {
+fun BranchCard(branch: ResourceBranch, isHindi: Boolean, language: Language = if (isHindi) Language.HINDI else Language.ENGLISH) {
+    val strings = language.appStrings()
     Card(
         colors = CardDefaults.cardColors(containerColor = Color(0xFFF0FDF4)),
         border = CardDefaults.outlinedCardBorder().copy(
@@ -717,14 +624,14 @@ fun BranchCard(branch: ResourceBranch, isHindi: Boolean) {
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = if (isHindi) branch.titleHindi else branch.titleEnglish,
+                    text = strings.t(branch.titleEnglish, branch.titleHindi, "${branch.titleEnglish} / ${branch.titleHindi}"),
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp,
                     color = Color(0xFF14532D)
                 )
                 Spacer(modifier = Modifier.height(2.dp))
                 Text(
-                    text = if (isHindi) branch.descriptionHindi else branch.descriptionEnglish,
+                    text = strings.t(branch.descriptionEnglish, branch.descriptionHindi, "${branch.descriptionEnglish} / ${branch.descriptionHindi}"),
                     fontSize = 11.sp,
                     color = Color(0xFF166534)
                 )
@@ -732,7 +639,7 @@ fun BranchCard(branch: ResourceBranch, isHindi: Boolean) {
             Spacer(modifier = Modifier.width(8.dp))
             TextButton(onClick = {}) {
                 Text(
-                    text = if (isHindi) branch.actionTextHindi else branch.actionTextEnglish,
+                    text = strings.t(branch.actionTextEnglish, branch.actionTextHindi, "${branch.actionTextEnglish} / ${branch.actionTextHindi}"),
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color(0xFF16A34A)

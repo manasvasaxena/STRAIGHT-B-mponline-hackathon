@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Notifications
@@ -132,11 +133,11 @@ fun HomeScreen(
                             modifier = Modifier.weight(1f)
                         )
                         HomeQuickActionTile(
-                            title = strings.t("Downloads", "डाउनलोड", "Downloads"),
-                            subtitle = strings.t("Offline Notes", "ऑफलाइन नोट्स", "Offline Notes"),
-                            icon = Icons.Default.Download,
-                            badgeColor = Color(0xFF10B981),
-                            onClick = { onNavigate("downloads") },
+                            title = strings.t("Quiz Battle", "क्विज़ बैटल", "Quiz Battle"),
+                            subtitle = strings.t("P2P Offline", "पी2पी ऑफ-लाइन", "P2P Offline"),
+                            icon = Icons.Default.EmojiEvents,
+                            badgeColor = SaffronPrimary,
+                            onClick = { onNavigate("quiz_battle") },
                             modifier = Modifier.weight(1f)
                         )
                     }
@@ -240,6 +241,66 @@ fun HomeScreen(
                             )
                         }
                         Icon(Icons.Default.ArrowForward, contentDescription = null, tint = Color(0xFF047857))
+                    }
+                }
+            }
+
+            // P2P Quiz Battle Dedicated Bottom Banner Button
+            item(key = "p2p_quiz_battle_banner") {
+                Card(
+                    onClick = { onNavigate("quiz_battle") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = SaffronPrimary),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Surface(
+                            shape = CircleShape,
+                            color = Color.White.copy(alpha = 0.25f),
+                            modifier = Modifier.size(44.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    Icons.Default.EmojiEvents,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(26.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                "⚔️ " + strings.t("P2P Quiz Battle", "पी2पी क्विज़ बैटल", "P2P Quiz Battle"),
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                color = Color.White
+                            )
+                            Text(
+                                strings.t("Challenge nearby friends offline without internet!", "बिना इंटरनेट के पास के दोस्तों को चुनौती दें!", "Nearby friends ko challenge karein without internet!"),
+                                fontSize = 12.sp,
+                                color = Color.White.copy(alpha = 0.9f)
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(10.dp),
+                            color = Color.White,
+                            modifier = Modifier.padding(start = 6.dp)
+                        ) {
+                            Text(
+                                text = strings.t("PLAY NOW", "खेलें", "PLAY NOW"),
+                                fontWeight = FontWeight.ExtraBold,
+                                fontSize = 12.sp,
+                                color = SaffronPrimary,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            )
+                        }
                     }
                 }
             }

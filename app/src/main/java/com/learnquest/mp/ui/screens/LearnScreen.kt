@@ -262,11 +262,18 @@ fun LearnScreen(
 
                 item {
                     LearnSection(
-                        title = strings.t("Quizzes", "क्विज़", "Quizzes"),
-                        subtitle = strings.t("Check mastery with adaptive questions.", "अनुकूली प्रश्नों से अपनी पकड़ जांचें।", "Adaptive questions se mastery check करें."),
+                        title = strings.t("Quizzes & Battles", "क्विज़ और बैटल", "Quizzes & Battles"),
+                        subtitle = strings.t("Test yourself or challenge a nearby friend offline.", "खुद को जांचें या पास के दोस्त को चुनौती दें।", "Test yourself ya nearby friend challenge करें."),
                         icon = Icons.Default.Quiz,
                         iconTint = ForestGreen
                     ) {
+                        LearnListCard(
+                            icon = Icons.Default.EmojiEvents,
+                            title = strings.t("P2P Player Quiz Battle", "पी2पी क्विज़ बैटल", "P2P Quiz Battle"),
+                            subtitle = strings.t("2 Players • Offline Wi-Fi Direct • Real-time", "2 खिलाड़ी • ऑफलाइन वाई-फाई डायरेक्ट • रीयल-टाइम", "2 Players • Offline Wi-Fi Direct • Real-time"),
+                            actionLabel = strings.t("Battle", "बैटल", "Battle"),
+                            onClick = { onMessage("NAVIGATE_QUIZ_BATTLE") }
+                        )
                         LearnListCard(
                             icon = Icons.Default.EmojiEvents,
                             title = strings.t("Adaptive Science Quiz", "अनुकूली विज्ञान क्विज़", "Adaptive Science Quiz"),

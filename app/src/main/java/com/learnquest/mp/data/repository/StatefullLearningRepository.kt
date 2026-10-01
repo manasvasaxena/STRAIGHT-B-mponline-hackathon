@@ -183,6 +183,29 @@ class StatefullLearningRepository(context: Context) : LearningRepository, AutoCl
         _syncQueue.value = _syncQueue.value.map { it.copy(status = SyncStatus.SYNCED) }
     }
 
+    fun recordBattleCompletion(
+        winnerName: String,
+        player1Score: Int,
+        player1Xp: Int,
+        player2Score: Int,
+        player2Xp: Int,
+        subject: String
+    ) {
+        val currentProfile = _profiles.value.find { it.id == _activeProfileId.value }
+        if (currentProfile != null) {
+            val updatedProfiles = _profiles.value.map { profile ->
+                if (profile.id == currentProfile.id) {
+                    profile.copy(totalXp = profile.totalXp + player1Xp)
+                } else profile
+            }
+            _profiles.value = updatedProfiles
+        }
+        addSyncItem(
+            actionType = "QUIZ_BATTLE_RESULT",
+            payload = "P2P Battle ($subject): Winner=$winnerName, P1 Score=$player1Score (+${player1Xp}XP), P2 Score=$player2Score (+${player2Xp}XP)"
+        )
+    }
+
     override fun getHomeData(): HomeData {
         val activeProfile = _profiles.value.find { it.id == _activeProfileId.value } ?: _profiles.value.first()
         return HomeData(
