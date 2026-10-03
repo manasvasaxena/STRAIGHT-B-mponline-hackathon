@@ -1,4 +1,4 @@
-# 🚀 LearnQuest MP (SUTRA)
+# 🚀 SUTRA (LearnQuest MP)
 ### *Learning that doesn't wait for network.*
 
 [![MP Board Curriculum](https://img.shields.io/badge/Curriculum-MP%20Board%20%2F%20NCERT-orange.svg)](https://mpbse.nic.in/)
@@ -11,9 +11,9 @@
 
 ## 📌 Overview
 
-**LearnQuest MP** (codenamed **SUTRA**) is an **offline-first, AI-powered educational ecosystem** custom-tailored for students in rural, remote, and tribal regions of Madhya Pradesh. 
+**SUTRA** (codenamed **LearnQuest MP**) is an **offline-first, AI-powered educational ecosystem** custom-tailored for students in rural, remote, and tribal regions of Madhya Pradesh. 
 
-Designed around intermittent or completely zero connectivity, LearnQuest MP ensures uninterrupted quality education by coupling local-first storage with **P2P Wi-Fi Direct quiz battles**, **curriculum-grounded offline doubt solving**, **verified scholarship matching**, and **local teacher escalation**.
+Designed around intermittent or completely zero connectivity, SUTRA ensures uninterrupted quality education by coupling local-first storage with **P2P Wi-Fi Direct quiz battles**, **curriculum-grounded offline doubt solving**, **verified scholarship matching**, and **local teacher escalation**.
 
 ---
 
